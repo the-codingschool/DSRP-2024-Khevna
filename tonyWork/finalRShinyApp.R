@@ -6,8 +6,25 @@ library(shinythemes)
 library(tibble)
 library(vroom)
 library(fastDummies)
+library(caTools)
 
 set.seed(42)
+
+align_columns <- function(patient_df, training_df) {
+  # Get the columns of the training data
+  training_cols <- names(training_df)
+  
+  # Add missing columns to the patient data with default values
+  for (col in setdiff(training_cols, names(patient_df))) {
+    patient_df[[col]] <- 0
+  }
+  
+  # Ensure columns are in the same order as in training data
+  patient_df <- patient_df[training_cols]
+  
+  return(patient_df)
+}
+
 
 ui <- fluidPage(theme = shinytheme("sandstone"),
     navbarPage(title = "Lung Cancer Data Science - Tony",
@@ -129,7 +146,10 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                  )
              ),
              tabPanel("KNN",
-                 checkboxInput("submitPredict","Predict with patient data?",FALSE)
+                 tableOutput("knnConfusionMatrix"),
+                 textOutput("knnAccuracy"),
+                 checkboxInput("submitPredict","Predict with patient data?",FALSE),
+                 textOutput("knnPrediction")
              )
            
            
@@ -203,40 +223,40 @@ server <- function(input,output){
   
   patientData <- reactive ({
       patientdf <- data.frame(
-          Age = submitAge,
-          Gender = submitGender,
-          Smoking_History = submitSmoking_History,
-          Tumor_Size_mm = submitTumor_Size_mm,
-          Tumor_Location = submitTumor_Location,
-          Stage = submitStage,
-          Ethnicity = submitEthnicity,
-          Family_History = submitFamily_History,
-          Comorbidity_Diabetes = submitComorbidity_Diabetes,
-          Comorbidity_Hypertension = submitComorbidity_Hypertension,
-          Comorbidity_Heart_Disease = submitComorbidity_Heart_Disease,
-          Comorbidity_Chronic_Lung_Disease = submitComorbidity_Chronic_Lung_Disease,
-          Comorbidity_Kidney_Disease = submitComorbidity_Kidney_Disease,
-          Comorbidity_Autoimmune_Disease = submitComorbidity_Autoimmune_Disease,
-          Comorbidity_Other = submitComorbidity_Other,
-          Performance_Status = submitPerformance_Status,
-          Smoking_Pack_Years = submitSmoking_Pack_Years,
-          Blood_Pressure_Systolic = submitBlood_Pressure_Systolic,
-          Blood_Pressure_Diastolic = submitBlood_Pressure_Diastolic,
-          Blood_Pressure_Pulse = submitBlood_Pressure_Pulse,
-          Hemoglobin_Level = submitHemoglobin_Level,
-          White_Blood_Cell_Count = submitWhite_Blood_Cell_Count,
-          Platelet_Count = submitPlatelet_Count,
-          Albumin_Level = submitAlbumin_Level,
-          Alkaline_Phosphatase_Level = submitAlkaline_Phosphatase_Level,
-          Alanine_Aminotransferase_Level = submitAlanine_Aminotransferase_Level,
-          Aspartate_Aminotransferase_Level = submitAspartate_Aminotransferase_Level,
-          Creatinine_Level = submitCreatinine_Level,
-          LDH_Level = submitLDH_Level,
-          Calcium_Level = submitCalcium_Level,
-          Phosphorus_Level = submitPhosphorus_Level,
-          Glucose_Level = submitGlucose_Level,
-          Potassium_Level = submitPotassium_Level,
-          Sodium_Level = submitSodium_Level
+          Age = input$submitAge,
+          Gender = input$submitGender,
+          Smoking_History = input$submitSmoking_History,
+          Tumor_Size_mm = input$submitTumor_Size_mm,
+          Tumor_Location = input$submitTumor_Location,
+          Stage = input$submitStage,
+          Ethnicity = input$submitEthnicity,
+          Family_History = input$submitFamily_History,
+          Comorbidity_Diabetes = input$submitComorbidity_Diabetes,
+          Comorbidity_Hypertension = input$submitComorbidity_Hypertension,
+          Comorbidity_Heart_Disease = input$submitComorbidity_Heart_Disease,
+          Comorbidity_Chronic_Lung_Disease = input$submitComorbidity_Chronic_Lung_Disease,
+          Comorbidity_Kidney_Disease = input$submitComorbidity_Kidney_Disease,
+          Comorbidity_Autoimmune_Disease = input$submitComorbidity_Autoimmune_Disease,
+          Comorbidity_Other = input$submitComorbidity_Other,
+          Performance_Status = input$submitPerformance_Status,
+          Smoking_Pack_Years = input$submitSmoking_Pack_Years,
+          Blood_Pressure_Systolic = input$submitBlood_Pressure_Systolic,
+          Blood_Pressure_Diastolic = input$submitBlood_Pressure_Diastolic,
+          Blood_Pressure_Pulse = input$submitBlood_Pressure_Pulse,
+          Hemoglobin_Level = input$submitHemoglobin_Level,
+          White_Blood_Cell_Count = input$submitWhite_Blood_Cell_Count,
+          Platelet_Count = input$submitPlatelet_Count,
+          Albumin_Level = input$submitAlbumin_Level,
+          Alkaline_Phosphatase_Level = input$submitAlkaline_Phosphatase_Level,
+          Alanine_Aminotransferase_Level = input$submitAlanine_Aminotransferase_Level,
+          Aspartate_Aminotransferase_Level = input$submitAspartate_Aminotransferase_Level,
+          Creatinine_Level = input$submitCreatinine_Level,
+          LDH_Level = input$submitLDH_Level,
+          Calcium_Level = input$submitCalcium_Level,
+          Phosphorus_Level = input$submitPhosphorus_Level,
+          Glucose_Level = input$submitGlucose_Level,
+          Potassium_Level = input$submitPotassium_Level,
+          Sodium_Level = input$submitSodium_Level
       )
       patientdf <- patientdf %>%
         mutate(across(c(Family_History, Comorbidity_Diabetes, Comorbidity_Hypertension, 
@@ -244,6 +264,7 @@ server <- function(input,output){
                         Comorbidity_Kidney_Disease, Comorbidity_Autoimmune_Disease, 
                         Comorbidity_Other), ~ ifelse(. == "Yes", 1, 0)))
       patientdf_encoded <- dummy_cols(patientdf, select_columns = c("Ethnicity","Gender","Smoking_History","Tumor_Location","Stage"), remove_first_dummy = TRUE)
+      patientdf_encoded <- align_columns(patientdf_encoded,data())
       return(patientdf_encoded)
   })
   
@@ -281,9 +302,13 @@ server <- function(input,output){
   })
   
   output$knnPrediction <- reactive({
-    new_pred <- knn(train = knnresult$training[, listToTrainWith()],
-        test = patientData(),
-        cl = knnresult$training$Survival_Months, k = 5)
+    if (!submitPredict) {
+      return(NULL)
+    }
+    patient_data_aligned <- align_columns(patientData(), knnresult()$training)
+    new_pred <- knn(train = knnresult()$training[, listToTrainWith()],
+                    test = patient_data_aligned,
+                    cl = knnresult()$training$Survival_Months, k = 5)
     paste("Predictions:", paste(new_pred, collapse = ", "))
   })
   
