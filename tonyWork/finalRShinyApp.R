@@ -79,7 +79,57 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                   
                   
               )
-          )
+         ),
+         
+         navbarMenu("Prediction",
+             tabPanel("Input Patient Data",
+                h2("Input Patient Data"),
+                p("Not every question needs to be answered"),
+                column(6,
+                    numericInput("submitAge", "Enter Age (Years):",NULL),
+                    selectInput("submitGender", "Select Gender:", choices=c("Male","Female")),
+                    selectInput("submitSmoking_History", "Select Smoking_History:", choices=c("Never Smoked","Current Smoker","Former Smoker")),
+                    numericInput("submitTumor_Size_mm", "Enter Tumor_Size_mm:",NULL),
+                    selectInput("submitTumor_Location", "Enter Tumor_Location:",choices=c("Lower Lobe","Middle Lobe","Upper Lobe","Unknown")),
+                    selectInput("submitEthnicity", "Select Ethnicity:",choices=c("African American","Asian","Caucasian","Hispanic","Other")),
+                    selectInput("submitFamily_History", "Select Family_History:",choices=c("Yes","No"),"No"),
+                    selectInput("submitComorbidity_Diabetes", "Enter Comorbidity_Diabetes:",choices=c("Yes","No"),"No"),
+                    selectInput("submitComorbidity_Hypertension", "Enter Comorbidity_Hypertension:",choices=c("Yes","No"),"No"),
+                    selectInput("submitComorbidity_Heart_Disease", "Enter Comorbidity_Heart_Disease:",choices=c("Yes","No"),"No"),
+                    selectInput("submitComorbidity_Chronic_Lung_Disease", "Enter Comorbidity_Chronic_Lung_Disease:",choices=c("Yes","No"),"No"),
+                    selectInput("submitComorbidity_Kidney_Disease", "Enter Comorbidity_Kidney_Disease:",choices=c("Yes","No"),"No"),
+                    selectInput("submitComorbidity_Autoimmune_Disease", "Enter Comorbidity_Autoimmune_Disease:",choices=c("Yes","No"),"No"),
+                    selectInput("submitComorbidity_Other", "Enter Comorbidity_Other:",choices=c("Yes","No"),"No"),
+                    selectInput("submitPerformance_Status", "Enter Performance_Status:",choices=c("Yes","No"),"No"),
+                    numericInput("submitSmoking_Pack_Years", "Enter Smoking_Pack_Years:",NULL)
+                ),
+                column(6,
+                     numericInput("submitBlood_Pressure_Systolic", "Enter Blood_Pressure_Systolic:",NULL),
+                     numericInput("submitBlood_Pressure_Diastolic", "Enter Blood_Pressure_Diastolic:",NULL),
+                     numericInput("submitBlood_Pressure_Pulse", "Enter Blood_Pressure_Pulse:",NULL),
+                     numericInput("submitHemoglobin_Level", "Enter Hemoglobin_Level:",NULL),
+                     numericInput("submitWhite_Blood_Cell_Count", "Enter White_Blood_Cell_Count:",NULL),
+                     numericInput("submitPlatelet_Count", "Enter Platelet_Count:",NULL),
+                     numericInput("submitAlbumin_Level", "Enter Albumin_Level:",NULL),
+                     numericInput("submitAlkaline_Phosphatase_Level", "Enter Alkaline_Phosphatase_Level:",NULL),
+                     numericInput("submitAlanine_Aminotransferase_Level", "Enter Alanine_Aminotransferase_Level:",NULL),
+                     numericInput("submitAspartate_Aminotransferase_Level", "Enter Aspartate_Aminotransferase_Level:",NULL),
+                     numericInput("submitCreatinine_Level", "Enter Creatinine_Level:",NULL),
+                     numericInput("submitLDH_Level", "Enter LDH_Level:",NULL),
+                     numericInput("submitCalcium_Level", "Enter Calcium_Level:",NULL),
+                     numericInput("submitPhosphorus_Level", "Enter Phosphorus_Level:",NULL),
+                     numericInput("submitGlucose_Level", "Enter Glucose_Level:",NULL),
+                     numericInput("submitPotassium_Level", "Enter Potassium_Level:",NULL),
+                     numericInput("submitSodium_Level", "Enter Sodium_Level:",NULL)
+                     
+                 )
+             ),
+             tabPanel("KNN",
+                 p("hi")
+             )
+           
+           
+         )
                
                
                
@@ -88,7 +138,7 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
 )
 server <- function(input,output){
   
-  dataInput <- reactive ({
+  data <- reactive ({
     if(is.null(input$inputCSV)){
         df <- read.csv("lung_cancer_data.csv")
     } else {
@@ -137,10 +187,9 @@ server <- function(input,output){
       colnames(df)[which(names(df)==input$submitSodium_LevelName)] <- "Sodium_Level"
       colnames(df)[which(names(df)==input$submitSmoking_Pack_YearsName)] <- "Smoking_Pack_Years"
     }
-    
-    
-    
   })
+  
+  
   
   
 }
