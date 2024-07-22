@@ -7,6 +7,7 @@ library(tibble)
 library(vroom)
 library(fastDummies)
 library(caTools)
+library(class)
 
 set.seed(42)
 
@@ -122,7 +123,8 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                     selectInput("submitComorbidity_Autoimmune_Disease", "Select Comorbidity_Autoimmune_Disease:",choices=c("Yes","No"),"No"),
                     selectInput("submitComorbidity_Other", "Select Comorbidity_Other:",choices=c("Yes","No"),"No"),
                     numericInput("submitPerformance_Status", "Select Performance_Status (0 to 4):",NULL),
-                    numericInput("submitSmoking_Pack_Years", "Select Smoking_Pack_Years:",NULL)
+                    numericInput("submitSmoking_Pack_Years", "Select Smoking_Pack_Years:",NULL),
+                    selectInput("submitTreatment","Select Treatment",c("Surgery","Radiation Therapy", "Chemotherapy", "Targeted Therapy"))
                 ),
                 column(6,
                      numericInput("submitBlood_Pressure_Systolic", "Enter Blood_Pressure_Systolic:",NULL),
@@ -216,7 +218,7 @@ server <- function(input,output){
                       Comorbidity_Heart_Disease, Comorbidity_Chronic_Lung_Disease, 
                       Comorbidity_Kidney_Disease, Comorbidity_Autoimmune_Disease, 
                       Comorbidity_Other), ~ ifelse(. == "Yes", 1, 0)))
-    df_encoded <- dummy_cols(df, select_columns = c("Ethnicity","Gender","Smoking_History","Tumor_Location","Stage"), remove_first_dummy = TRUE)
+    df_encoded <- dummy_cols(df, select_columns = c("Ethnicity","Smoking_History","Tumor_Location","Stage","Treatment"), remove_first_dummy = TRUE)
     
     return(df_encoded)
   })
@@ -229,6 +231,7 @@ server <- function(input,output){
           Tumor_Size_mm = input$submitTumor_Size_mm,
           Tumor_Location = input$submitTumor_Location,
           Stage = input$submitStage,
+          Treatment = input$submitTreatment,
           Ethnicity = input$submitEthnicity,
           Family_History = input$submitFamily_History,
           Comorbidity_Diabetes = input$submitComorbidity_Diabetes,
@@ -263,27 +266,31 @@ server <- function(input,output){
                         Comorbidity_Heart_Disease, Comorbidity_Chronic_Lung_Disease, 
                         Comorbidity_Kidney_Disease, Comorbidity_Autoimmune_Disease, 
                         Comorbidity_Other), ~ ifelse(. == "Yes", 1, 0)))
-      patientdf_encoded <- dummy_cols(patientdf, select_columns = c("Ethnicity","Gender","Smoking_History","Tumor_Location","Stage"), remove_first_dummy = TRUE)
+      patientdf_encoded <- dummy_cols(patientdf, select_columns = c("Ethnicity","Smoking_History","Tumor_Location","Stage","Treatment"), remove_first_dummy = TRUE)
       patientdf_encoded <- align_columns(patientdf_encoded,data())
       return(patientdf_encoded)
   })
   
   listToTrainWith <- reactive({
-    if(submitPredict){
+    if(input$submitPredict){
       colnames(patientData())[sapply(patientData(), function(col) any(!is.na(col)))]
     } else{
-      p <- setdiff(names(data()), c("Patient_ID", "Survival_Months"))
-      
+      list <- setdiff(names(data()), c("Patient_ID", "Survival_Months","Stage","Gender","Ethnicity","Smoking_History","Tumor_Location","Insurance_Type","Treatment"))
+      print(list)
+      list
     }
+    
     
   })
   
   knnresult <- reactive({
-    split <- sample.split(data()$Survival_Months,SplitRatio=0.8)
-    training <- subset(data(),split==TRUE)
-    testing <- subset(data(),split==FALSE)
-    knn_model <- knn(train = training[,listToTrainWith()],
-                     test=testing[,listToTrainWith()],
+    dataset <- data()
+    split <- sample.split(dataset$Survival_Months,SplitRatio=0.8)
+    training <- subset(dataset,split==TRUE)
+    testing <- subset(dataset,split==FALSE)
+    list1 <- listToTrainWith()
+    knn_model <- knn(train = training[,list1],
+                     test=testing[,list1],
                      cl=training$Survival_Months, k=5
     )
     pred <- knn_model
@@ -302,7 +309,7 @@ server <- function(input,output){
   })
   
   output$knnPrediction <- reactive({
-    if (!submitPredict) {
+    if (!input$submitPredict) {
       return(NULL)
     }
     patient_data_aligned <- align_columns(patientData(), knnresult()$training)
