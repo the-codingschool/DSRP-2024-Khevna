@@ -5,6 +5,9 @@ library(shiny)
 library(shinythemes)
 library(tibble)
 library(vroom)
+library(fastDummies)
+
+set.seed(42)
 
 ui <- fluidPage(theme = shinytheme("sandstone"),
     navbarPage(title = "Lung Cancer Data Science - Tony",
@@ -84,24 +87,25 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
          navbarMenu("Prediction",
              tabPanel("Input Patient Data",
                 h2("Input Patient Data"),
-                p("Not every question needs to be answered"),
+                p("Please answer as many as possible"),
                 column(6,
                     numericInput("submitAge", "Enter Age (Years):",NULL),
                     selectInput("submitGender", "Select Gender:", choices=c("Male","Female")),
                     selectInput("submitSmoking_History", "Select Smoking_History:", choices=c("Never Smoked","Current Smoker","Former Smoker")),
                     numericInput("submitTumor_Size_mm", "Enter Tumor_Size_mm:",NULL),
-                    selectInput("submitTumor_Location", "Enter Tumor_Location:",choices=c("Lower Lobe","Middle Lobe","Upper Lobe","Unknown")),
+                    selectInput("submitTumor_Location", "Select Tumor_Location:",choices=c("Lower Lobe","Middle Lobe","Upper Lobe","Unknown")),
+                    selectInput("submitStage","Select Stage:",choices=c("Stage I", "Stage II", "Stage III", "Stage IV", "Unknown")),
                     selectInput("submitEthnicity", "Select Ethnicity:",choices=c("African American","Asian","Caucasian","Hispanic","Other")),
                     selectInput("submitFamily_History", "Select Family_History:",choices=c("Yes","No"),"No"),
-                    selectInput("submitComorbidity_Diabetes", "Enter Comorbidity_Diabetes:",choices=c("Yes","No"),"No"),
-                    selectInput("submitComorbidity_Hypertension", "Enter Comorbidity_Hypertension:",choices=c("Yes","No"),"No"),
-                    selectInput("submitComorbidity_Heart_Disease", "Enter Comorbidity_Heart_Disease:",choices=c("Yes","No"),"No"),
-                    selectInput("submitComorbidity_Chronic_Lung_Disease", "Enter Comorbidity_Chronic_Lung_Disease:",choices=c("Yes","No"),"No"),
-                    selectInput("submitComorbidity_Kidney_Disease", "Enter Comorbidity_Kidney_Disease:",choices=c("Yes","No"),"No"),
-                    selectInput("submitComorbidity_Autoimmune_Disease", "Enter Comorbidity_Autoimmune_Disease:",choices=c("Yes","No"),"No"),
-                    selectInput("submitComorbidity_Other", "Enter Comorbidity_Other:",choices=c("Yes","No"),"No"),
-                    selectInput("submitPerformance_Status", "Enter Performance_Status:",choices=c("Yes","No"),"No"),
-                    numericInput("submitSmoking_Pack_Years", "Enter Smoking_Pack_Years:",NULL)
+                    selectInput("submitComorbidity_Diabetes", "Select Comorbidity_Diabetes:",choices=c("Yes","No"),"No"),
+                    selectInput("submitComorbidity_Hypertension", "Select Comorbidity_Hypertension:",choices=c("Yes","No"),"No"),
+                    selectInput("submitComorbidity_Heart_Disease", "Select Comorbidity_Heart_Disease:",choices=c("Yes","No"),"No"),
+                    selectInput("submitComorbidity_Chronic_Lung_Disease", "Select Comorbidity_Chronic_Lung_Disease:",choices=c("Yes","No"),"No"),
+                    selectInput("submitComorbidity_Kidney_Disease", "Select Comorbidity_Kidney_Disease:",choices=c("Yes","No"),"No"),
+                    selectInput("submitComorbidity_Autoimmune_Disease", "Select Comorbidity_Autoimmune_Disease:",choices=c("Yes","No"),"No"),
+                    selectInput("submitComorbidity_Other", "Select Comorbidity_Other:",choices=c("Yes","No"),"No"),
+                    numericInput("submitPerformance_Status", "Select Performance_Status (0 to 4):",NULL),
+                    numericInput("submitSmoking_Pack_Years", "Select Smoking_Pack_Years:",NULL)
                 ),
                 column(6,
                      numericInput("submitBlood_Pressure_Systolic", "Enter Blood_Pressure_Systolic:",NULL),
@@ -125,7 +129,7 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                  )
              ),
              tabPanel("KNN",
-                 p("hi")
+                 checkboxInput("submitPredict","Predict with patient data?",FALSE)
              )
            
            
@@ -187,8 +191,101 @@ server <- function(input,output){
       colnames(df)[which(names(df)==input$submitSodium_LevelName)] <- "Sodium_Level"
       colnames(df)[which(names(df)==input$submitSmoking_Pack_YearsName)] <- "Smoking_Pack_Years"
     }
+    df <- df %>%
+      mutate(across(c(Family_History, Comorbidity_Diabetes, Comorbidity_Hypertension, 
+                      Comorbidity_Heart_Disease, Comorbidity_Chronic_Lung_Disease, 
+                      Comorbidity_Kidney_Disease, Comorbidity_Autoimmune_Disease, 
+                      Comorbidity_Other), ~ ifelse(. == "Yes", 1, 0)))
+    df_encoded <- dummy_cols(df, select_columns = c("Ethnicity","Gender","Smoking_History","Tumor_Location","Stage"), remove_first_dummy = TRUE)
+    
+    return(df_encoded)
   })
   
+  patientData <- reactive ({
+      patientdf <- data.frame(
+          Age = submitAge,
+          Gender = submitGender,
+          Smoking_History = submitSmoking_History,
+          Tumor_Size_mm = submitTumor_Size_mm,
+          Tumor_Location = submitTumor_Location,
+          Stage = submitStage,
+          Ethnicity = submitEthnicity,
+          Family_History = submitFamily_History,
+          Comorbidity_Diabetes = submitComorbidity_Diabetes,
+          Comorbidity_Hypertension = submitComorbidity_Hypertension,
+          Comorbidity_Heart_Disease = submitComorbidity_Heart_Disease,
+          Comorbidity_Chronic_Lung_Disease = submitComorbidity_Chronic_Lung_Disease,
+          Comorbidity_Kidney_Disease = submitComorbidity_Kidney_Disease,
+          Comorbidity_Autoimmune_Disease = submitComorbidity_Autoimmune_Disease,
+          Comorbidity_Other = submitComorbidity_Other,
+          Performance_Status = submitPerformance_Status,
+          Smoking_Pack_Years = submitSmoking_Pack_Years,
+          Blood_Pressure_Systolic = submitBlood_Pressure_Systolic,
+          Blood_Pressure_Diastolic = submitBlood_Pressure_Diastolic,
+          Blood_Pressure_Pulse = submitBlood_Pressure_Pulse,
+          Hemoglobin_Level = submitHemoglobin_Level,
+          White_Blood_Cell_Count = submitWhite_Blood_Cell_Count,
+          Platelet_Count = submitPlatelet_Count,
+          Albumin_Level = submitAlbumin_Level,
+          Alkaline_Phosphatase_Level = submitAlkaline_Phosphatase_Level,
+          Alanine_Aminotransferase_Level = submitAlanine_Aminotransferase_Level,
+          Aspartate_Aminotransferase_Level = submitAspartate_Aminotransferase_Level,
+          Creatinine_Level = submitCreatinine_Level,
+          LDH_Level = submitLDH_Level,
+          Calcium_Level = submitCalcium_Level,
+          Phosphorus_Level = submitPhosphorus_Level,
+          Glucose_Level = submitGlucose_Level,
+          Potassium_Level = submitPotassium_Level,
+          Sodium_Level = submitSodium_Level
+      )
+      patientdf <- patientdf %>%
+        mutate(across(c(Family_History, Comorbidity_Diabetes, Comorbidity_Hypertension, 
+                        Comorbidity_Heart_Disease, Comorbidity_Chronic_Lung_Disease, 
+                        Comorbidity_Kidney_Disease, Comorbidity_Autoimmune_Disease, 
+                        Comorbidity_Other), ~ ifelse(. == "Yes", 1, 0)))
+      patientdf_encoded <- dummy_cols(patientdf, select_columns = c("Ethnicity","Gender","Smoking_History","Tumor_Location","Stage"), remove_first_dummy = TRUE)
+      return(patientdf_encoded)
+  })
+  
+  listToTrainWith <- reactive({
+    if(submitPredict){
+      colnames(patientData())[sapply(patientData(), function(col) any(!is.na(col)))]
+    } else{
+      p <- setdiff(names(data()), c("Patient_ID", "Survival_Months"))
+      
+    }
+    
+  })
+  
+  knnresult <- reactive({
+    split <- sample.split(data()$Survival_Months,SplitRatio=0.8)
+    training <- subset(data(),split==TRUE)
+    testing <- subset(data(),split==FALSE)
+    knn_model <- knn(train = training[,listToTrainWith()],
+                     test=testing[,listToTrainWith()],
+                     cl=training$Survival_Months, k=5
+    )
+    pred <- knn_model
+    list(pred = pred, actual = testing$Survival_Months, training = training)
+    
+  })
+  
+  output$knnConfusionMatrix <- renderTable({
+    confusion_matrix <- table(Predicted = knnresult()$pred, Actual = knnresult()$actual)
+    confusion_matrix
+  })
+  
+  output$knnAccuracyText <- renderText({
+    accuracy <- sum(diag(knnConfusionMatrix())) / sum(knnConfusionMatrix())
+    paste("Accuracy:", round(accuracy, 2))
+  })
+  
+  output$knnPrediction <- reactive({
+    new_pred <- knn(train = knnresult$training[, listToTrainWith()],
+        test = patientData(),
+        cl = knnresult$training$Survival_Months, k = 5)
+    paste("Predictions:", paste(new_pred, collapse = ", "))
+  })
   
   
   
