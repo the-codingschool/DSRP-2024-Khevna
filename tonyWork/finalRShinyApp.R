@@ -219,7 +219,7 @@ server <- function(input,output){
                       Comorbidity_Kidney_Disease, Comorbidity_Autoimmune_Disease, 
                       Comorbidity_Other), ~ ifelse(. == "Yes", 1, 0)))
     df_encoded <- dummy_cols(df, select_columns = c("Ethnicity","Smoking_History","Tumor_Location","Stage","Treatment"), remove_first_dummy = TRUE)
-    
+    df_encoded <- df_encoded %>% mutate(Survival=ifelse(Survival_Months>=60,1,0))
     return(df_encoded)
   })
   
@@ -275,8 +275,8 @@ server <- function(input,output){
     if(input$submitPredict){
       colnames(patientData())[sapply(patientData(), function(col) any(!is.na(col)))]
     } else{
-      list <- setdiff(names(data()), c("Patient_ID", "Survival_Months","Stage","Gender","Ethnicity","Smoking_History","Tumor_Location","Insurance_Type","Treatment"))
-      print(list)
+      list <- setdiff(names(data()), c("Tumor_Location","Survival","Patient_ID", "Survival_Months","Stage","Gender","Ethnicity","Smoking_History","Insurance_Type","Treatment"))
+     
       list
     }
     
@@ -285,16 +285,18 @@ server <- function(input,output){
   
   knnresult <- reactive({
     dataset <- data()
-    split <- sample.split(dataset$Survival_Months,SplitRatio=0.8)
+    split <- sample.split(dataset$Survival,SplitRatio=0.8)
     training <- subset(dataset,split==TRUE)
     testing <- subset(dataset,split==FALSE)
+    
     list1 <- listToTrainWith()
+    
     knn_model <- knn(train = training[,list1],
                      test=testing[,list1],
-                     cl=training$Survival_Months, k=5
+                     cl=training$Survival, k=5
     )
     pred <- knn_model
-    list(pred = pred, actual = testing$Survival_Months, training = training)
+    list(pred = pred, actual = testing$Survival, training = training)
     
   })
   
@@ -315,7 +317,7 @@ server <- function(input,output){
     patient_data_aligned <- align_columns(patientData(), knnresult()$training)
     new_pred <- knn(train = knnresult()$training[, listToTrainWith()],
                     test = patient_data_aligned,
-                    cl = knnresult()$training$Survival_Months, k = 5)
+                    cl = knnresult()$training$Survival, k = 5)
     paste("Predictions:", paste(new_pred, collapse = ", "))
   })
   
