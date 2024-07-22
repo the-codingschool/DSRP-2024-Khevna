@@ -14,5 +14,5 @@ numericalData = select(data,c("Age", "Tumor_Size_mm","Survival_Months","Blood_Pr
                               "Phosphorus_Level","Glucose_Level","Potassium_Level","Sodium_Level","Smoking_Pack_Years"))
 head(numericalData)
 correlation_matrix <- cor(numericalData,use = "complete.obs")
-print(correlation_matrix)
+print(correlation_matrix) 
 ggcorrplot(correlation_matrix)
