@@ -3,7 +3,8 @@ library(ggcorrplot)
 library(dplyr)
 # Get csv file
 # 1. Read the data from a CSV file.
-data <- read.csv("lung_cancer_data.csv")
+getwd()
+data <- read.csv("../data/lung_cancer_data.csv")
 
 # 2. Print the first few rows of the data.
 head(data)
@@ -64,5 +65,12 @@ par(mfrow = c(3, 7))  # 4 rows and 5 columns
 
 
 for (i in 1:21) {
-  boxplot(numericalData[, i], main = colnames(numericalData)[i], col = rainbow(10))
+  boxplot(numericalData[, i], main = colnames(numericalData)[i], col = "lightblue")
 }
+
+for (i in 1:21) {
+  hist(numericalData[, i], main = colnames(numericalData)[i], col = rainbow(10))
+}
+# You can see that almost everything is evenly distributed. Some of them have extra or half on the ends.
+# For example, Blood_Pressure_Pulse has double in the first bin and half in the last.
+

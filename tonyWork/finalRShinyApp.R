@@ -165,7 +165,7 @@ server <- function(input,output){
   
   data <- reactive ({
     if(is.null(input$inputCSV)){
-        df <- read.csv("lung_cancer_data.csv")
+        df <- read.csv("../data/lung_cancer_data.csv")
     } else {
       ext <- tools::file_ext(input$inputCSV$name)
       df <- switch(ext,
