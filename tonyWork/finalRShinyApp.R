@@ -8,6 +8,7 @@ library(vroom)
 library(fastDummies)
 library(caTools)
 library(class)
+library(paletteer)
 
 set.seed(2)
 
