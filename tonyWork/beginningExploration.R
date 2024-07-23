@@ -16,3 +16,6 @@ head(numericalData)
 correlation_matrix <- cor(numericalData,use = "complete.obs")
 print(correlation_matrix) 
 ggcorrplot(correlation_matrix)
+
+boxplot(data$Survival_Months)
+hist(data$Survival_Months)
