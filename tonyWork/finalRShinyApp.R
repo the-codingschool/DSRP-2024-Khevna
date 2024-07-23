@@ -9,6 +9,7 @@ library(fastDummies)
 library(caTools)
 library(class)
 library(paletteer)
+library(randomForest)
 
 set.seed(42)
 
@@ -159,6 +160,20 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                  textOutput("knnAccuracy"),
                  checkboxInput("submitPredict","Predict with patient data? (Will only use provided variables to train)",FALSE),
                  textOutput("knnPrediction")
+             ),
+             tabPanel("Random Forest",
+                      h2("Random Forest Prediction"),
+                      p("The algorithm was trained with the following final outcomes:"),
+                      markdown("
+                    + 0: Death within 1 year
+                    + 1: Death within 5 years
+                    + 2: Death after 5 years
+                 "),
+                      p("Confusion Matrix:"),
+                      tableOutput("rfConfusionMatrix"),
+                      textOutput("rfAccuracy"),
+                      checkboxInput("submitPredict","Predict with patient data? (Will only use provided variables to train)",FALSE),
+                      textOutput("rfPrediction")
              )
            
            
@@ -405,6 +420,58 @@ server <- function(input,output){
     paste("Prediction:", paste(result))
   })
   
+  randForestResult <- reactive({
+    set.seed(42)
+    dataset <- data()
+    split <- sample.split(dataset$Survival,SplitRatio=0.8)
+    training <- subset(dataset,split==TRUE)
+    testing <- subset(dataset,split==FALSE)
+    training$Survival <- as.factor(training$Survival)
+    testing$Survival <- as.factor(testing$Survival)
+    
+    list1 <- listToTrainWith()
+    
+    rf_model <- randomForest(x = training[,list1],
+                     y=training$Survival, ntree=100
+    )
+    predictions <- predict(rf_model, newdata = testing[,list1])
+    
+    list(pred = rf_model, predictions = predictions, actual = testing$Survival, training = training)
+    
+  })
+  
+  output$rfConfusionMatrix <- renderTable({
+    set.seed(42)
+    predictions <- randForestResult()$predictions
+    actuals <- randForestResult()$actual
+    
+    confusion_matrix <- table(Predicted = predictions, Actual = actuals)
+    confusion_matrix
+  })
+  
+  output$rfAccuracy <- renderText({
+    set.seed(42)
+    predictions <- randForestResult()$predictions
+    actuals <- randForestResult()$actual
+    
+    confusion_matrix <- table(Predicted = predictions, Actual = actuals)
+    accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+    paste0("Accuracy: ", round(accuracy*100, 2), "%")
+  })
+  
+  output$rfPrediction <- reactive({
+    set.seed(42)
+    if (!input$submitPredict) {
+      return(NULL)
+    }
+    pd <- patientData()[, listToTrainWith()]
+    predictor = randForestResult()$pred
+    new_pred <- predict(predictor, newdata = pd)
+    result <- "Lives for 5 years or more"
+    if(new_pred==0){result = "Dies within 1 year"}
+    if(new_pred==1){result = "Dies within 5 years"}
+    paste("Prediction:", paste(result))
+  })
   
   
 }
