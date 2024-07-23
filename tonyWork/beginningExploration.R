@@ -57,3 +57,12 @@ ggcorrplot(correlation_matrix)
 
 boxplot(data$Survival_Months)
 hist(data$Survival_Months)
+
+# Plot each numerical variable as a boxplot to see if it is just boxplot being normal or not
+
+par(mfrow = c(3, 7))  # 4 rows and 5 columns
+
+
+for (i in 1:21) {
+  boxplot(numericalData[, i], main = colnames(numericalData)[i], col = rainbow(10))
+}
