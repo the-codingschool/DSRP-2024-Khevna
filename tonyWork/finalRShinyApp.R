@@ -148,7 +148,13 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
              ),
              tabPanel("KNN",
                  h2("K-Nearest Neighbors Prediction"),
-                 p("Algorithm Confusion Matrix:"),
+                 p("The algorithm was trained with the following final outcomes:"),
+                 markdown("
+                    + 0: Death within 1 year
+                    + 1: Death within 5 years
+                    + 2: Death after 5 years
+                 "),
+                 p("Confusion Matrix:"),
                  tableOutput("knnConfusionMatrix"),
                  textOutput("knnAccuracy"),
                  checkboxInput("submitPredict","Predict with patient data? (Will only use provided variables to train)",FALSE),
