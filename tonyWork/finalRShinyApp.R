@@ -33,16 +33,21 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
     navbarPage(title = "Lung Cancer Data Science - Tony",
          tabPanel("Introduction",
               h2("About the Dataset"),
-              p("Realistic python generated dataset on lung cancer patients taken from kaggle."),
+              p("Python generated dataset on lung cancer patients taken from kaggle."),
               h4("38 variables, 23658 patients"),
               h2("What I did"),
               h2("About Me")
+         ),
+         tabPanel("Analysis",
+              h2("Introductory Exploration")    
+                  
          ),
          navbarMenu("Custom Data",
               tabPanel("Import dataset",
                   h2("Use your own dataset (Not Recommended)"),
                   p("Make sure your dataset has all the same columns as the default dataset!"),
                   p("If your dataset contains different variable names, please define them in the variable declaration tab"),
+                  p("Note: This probably won't work because of maximum file size issues"),
                   
                   fileInput("inputCSV", "Choose Custom CSV File",
                       accept = c(
@@ -147,7 +152,11 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                      
                  )
              ),
-             tabPanel("KNN",
+             tabPanel("Results",
+                h2("Results"),
+                navlistPanel(
+                  tabPanel(
+               "KNN",
                  h2("K-Nearest Neighbors Prediction"),
                  p("The algorithm was trained with the following final outcomes:"),
                  markdown("
@@ -174,7 +183,7 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                       textOutput("rfAccuracy"),
                       checkboxInput("submitPredict","Predict with patient data? (Will only use provided variables to train)",FALSE),
                       textOutput("rfPrediction")
-             )
+             )))
            
            
          )
@@ -432,7 +441,7 @@ server <- function(input,output){
     list1 <- listToTrainWith()
     
     rf_model <- randomForest(x = training[,list1],
-                     y=training$Survival, ntree=100
+                     y=training$Survival, ntree=50
     )
     predictions <- predict(rf_model, newdata = testing[,list1])
     
