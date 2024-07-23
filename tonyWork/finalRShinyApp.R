@@ -10,7 +10,7 @@ library(caTools)
 library(class)
 library(paletteer)
 
-set.seed(2)
+set.seed(42)
 
 align_columns <- function(patient_df, training_df) {
   # Get the columns of the training data
@@ -147,9 +147,11 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                  )
              ),
              tabPanel("KNN",
+                 h2("K-Nearest Neighbors Prediction"),
+                 p("Algorithm Confusion Matrix:"),
                  tableOutput("knnConfusionMatrix"),
                  textOutput("knnAccuracy"),
-                 checkboxInput("submitPredict","Predict with patient data?",FALSE),
+                 checkboxInput("submitPredict","Predict with patient data? (Will only use provided variables to train)",FALSE),
                  textOutput("knnPrediction")
              )
            
@@ -218,7 +220,7 @@ server <- function(input,output){
                       Comorbidity_Kidney_Disease, Comorbidity_Autoimmune_Disease, 
                       Comorbidity_Other), ~ ifelse(. == "Yes", 1, 0)))
     df_encoded <- dummy_cols(df, select_columns = c("Ethnicity","Smoking_History","Tumor_Location","Stage","Treatment"), remove_first_dummy = FALSE)
-    df_encoded <- df_encoded %>% mutate(Survival=ifelse(Survival_Months>=60,1,0))
+    df_encoded <- df_encoded %>% mutate(Survival=ifelse(Survival_Months>=60,2,ifelse(Survival_Months>=12,1,0)))
     return(df_encoded)
   })
   
@@ -354,6 +356,7 @@ server <- function(input,output){
   })
   
   knnresult <- reactive({
+    set.seed(42)
     dataset <- data()
     split <- sample.split(dataset$Survival,SplitRatio=0.8)
     training <- subset(dataset,split==TRUE)
@@ -375,12 +378,14 @@ server <- function(input,output){
     confusion_matrix
   })
   
-  output$knnAccuracyText <- renderText({
-    accuracy <- sum(diag(knnConfusionMatrix())) / sum(knnConfusionMatrix())
-    paste("Accuracy:", round(accuracy, 2))
+  output$knnAccuracy <- renderText({
+    confusion_matrix <- table(Predicted = knnresult()$pred, Actual = knnresult()$actual)
+    accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+    paste0("Accuracy: ", round(accuracy*100, 2), "%")
   })
   
   output$knnPrediction <- reactive({
+    set.seed(42)
     if (!input$submitPredict) {
       return(NULL)
     }
@@ -389,7 +394,8 @@ server <- function(input,output){
                     test = pd,
                     cl = knnresult()$training$Survival, k = 5)
     result <- "Lives for 5 years or more"
-    if(new_pred==0){result = "Dies within 5 years"}
+    if(new_pred==0){result = "Dies within 1 year"}
+    if(new_pred==1){result = "Dies within 5 years"}
     paste("Prediction:", paste(result))
   })
   
