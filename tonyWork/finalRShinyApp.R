@@ -9,7 +9,7 @@ library(fastDummies)
 library(caTools)
 library(class)
 
-set.seed(42)
+set.seed(2)
 
 align_columns <- function(patient_df, training_df) {
   # Get the columns of the training data
@@ -122,8 +122,6 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                     selectInput("submitComorbidity_Kidney_Disease", "Select Comorbidity_Kidney_Disease:",choices=c("Yes","No"),"No"),
                     selectInput("submitComorbidity_Autoimmune_Disease", "Select Comorbidity_Autoimmune_Disease:",choices=c("Yes","No"),"No"),
                     selectInput("submitComorbidity_Other", "Select Comorbidity_Other:",choices=c("Yes","No"),"No"),
-                    numericInput("submitPerformance_Status", "Select Performance_Status (0 to 4):",NULL),
-                    numericInput("submitSmoking_Pack_Years", "Select Smoking_Pack_Years:",NULL),
                     selectInput("submitTreatment","Select Treatment",c("Surgery","Radiation Therapy", "Chemotherapy", "Targeted Therapy"))
                 ),
                 column(6,
@@ -218,7 +216,7 @@ server <- function(input,output){
                       Comorbidity_Heart_Disease, Comorbidity_Chronic_Lung_Disease, 
                       Comorbidity_Kidney_Disease, Comorbidity_Autoimmune_Disease, 
                       Comorbidity_Other), ~ ifelse(. == "Yes", 1, 0)))
-    df_encoded <- dummy_cols(df, select_columns = c("Ethnicity","Smoking_History","Tumor_Location","Stage","Treatment"), remove_first_dummy = TRUE)
+    df_encoded <- dummy_cols(df, select_columns = c("Ethnicity","Smoking_History","Tumor_Location","Stage","Treatment"), remove_first_dummy = FALSE)
     df_encoded <- df_encoded %>% mutate(Survival=ifelse(Survival_Months>=60,1,0))
     return(df_encoded)
   })
@@ -241,8 +239,6 @@ server <- function(input,output){
           Comorbidity_Kidney_Disease = input$submitComorbidity_Kidney_Disease,
           Comorbidity_Autoimmune_Disease = input$submitComorbidity_Autoimmune_Disease,
           Comorbidity_Other = input$submitComorbidity_Other,
-          Performance_Status = input$submitPerformance_Status,
-          Smoking_Pack_Years = input$submitSmoking_Pack_Years,
           Blood_Pressure_Systolic = input$submitBlood_Pressure_Systolic,
           Blood_Pressure_Diastolic = input$submitBlood_Pressure_Diastolic,
           Blood_Pressure_Pulse = input$submitBlood_Pressure_Pulse,
@@ -261,24 +257,97 @@ server <- function(input,output){
           Potassium_Level = input$submitPotassium_Level,
           Sodium_Level = input$submitSodium_Level
       )
+      
       patientdf <- patientdf %>%
         mutate(across(c(Family_History, Comorbidity_Diabetes, Comorbidity_Hypertension, 
                         Comorbidity_Heart_Disease, Comorbidity_Chronic_Lung_Disease, 
                         Comorbidity_Kidney_Disease, Comorbidity_Autoimmune_Disease, 
                         Comorbidity_Other), ~ ifelse(. == "Yes", 1, 0)))
-      patientdf_encoded <- dummy_cols(patientdf, select_columns = c("Ethnicity","Smoking_History","Tumor_Location","Stage","Treatment"), remove_first_dummy = TRUE)
-      patientdf_encoded <- align_columns(patientdf_encoded,data())
-      return(patientdf_encoded)
+      
+      
+      patientdf$`Stage_Stage I` <- 0
+      patientdf$`Stage_Stage II` <- 0
+      patientdf$`Stage_Stage III` <- 0
+      patientdf$`Stage_Stage IV` <- 0
+      if(patientdf$Stage[1]=="Stage I"){
+        patientdf$`Stage_Stage I` = 1
+      } else if(patientdf$Stage[1]=="Stage II"){
+        patientdf$`Stage_Stage II` = 1
+      } else if(patientdf$Stage[1]=="Stage III"){
+        patientdf$`Stage_Stage III` = 1
+      } else if(patientdf$Stage[1]=="Stage IV"){
+        patientdf$`Stage_Stage IV` = 1
+      }
+      
+      patientdf$`Ethnicity_African American` <- 0
+      patientdf$`Ethnicity_Asian` <- 0
+      patientdf$`Ethnicity_Caucasian` <- 0
+      patientdf$`Ethnicity_Hispanic` <- 0
+      patientdf$`Ethnicity_Other` <- 0
+      if(patientdf$Ethnicity[1]=="African American"){
+        patientdf$`Ethnicity_African American` = 1
+      } else if(patientdf$Ethnicity[1]=="Asian"){
+        patientdf$`Ethnicity_Asian` = 1
+      } else if(patientdf$Ethnicity[1]=="Caucasian"){
+        patientdf$`Ethnicity_Caucasian` = 1
+      } else if(patientdf$Ethnicity[1]=="Hispanic"){
+        patientdf$`Ethnicity_Hispanic` = 1
+      } else if(patientdf$Ethnicity[1]=="Other"){
+        patientdf$`Ethnicity_Other` = 1
+      }
+      
+      patientdf$`Smoking_History_Never Smoked` <- 0
+      patientdf$`Smoking_History_Former Smoker` <- 0
+      patientdf$`Smoking_History_Current Smoker` <- 0
+      if(patientdf$Smoking_History[1]=="Never Smoked"){
+        patientdf$`Smoking_History_Never Smoked` = 1
+      } else if(patientdf$Smoking_History[1]=="Former Smoker"){
+        patientdf$`Smoking_History_Former Smoker` = 1
+      } else if(patientdf$Smoking_History[1]=="Current Smoker"){
+        patientdf$`Smoking_History_Current Smoker` = 1
+      } 
+      
+      patientdf$`Treatment_Radiation Therapy` <- 0
+      patientdf$`Treatment_Surgery` <- 0
+      patientdf$`Treatment_Targeted Therapy` <- 0
+      patientdf$`Treatment_Chemotherapy` <- 0
+      if(patientdf$Smoking_History[1]=="Radiation Therapy"){
+        patientdf$`Treatment_Radiation Therapy` = 1
+      } else if(patientdf$Treatment[1]=="Treatment_Surgery"){
+        patientdf$`Treatment_Surgery` = 1
+      } else if(patientdf$Treatment[1]=="Targeted Therapy"){
+        patientdf$`Treatment_Targeted Therapy` = 1
+      } else if(patientdf$Treatment[1]=="Chemotherapy"){
+        patientdf$`Treatment_Chemotherapy` = 1
+      } 
+      
+      patientdf$`Tumor_Location_Upper Lobe` <- 0
+      patientdf$`Tumor_Location_Middle Lobe` <- 0
+      patientdf$`Tumor_Location_Lower Lobe` <- 0
+      if(patientdf$Tumor_Location[1]=="Never Smoked"){
+        patientdf$`Tumor_Location_Upper Lobe` = 1
+      } else if(patientdf$Tumor_Location[1]=="Former Smoker"){
+        patientdf$`Tumor_Location_Middle Lobe` = 1
+      } else if(patientdf$Tumor_Location[1]=="Current Smoker"){
+        patientdf$`Tumor_Location_Lower Lobe` = 1
+      } 
+      
+        
+      patientdf <- patientdf %>% select_if(~ !all(is.na(.)))
+      
+      return(patientdf)
   })
   
   listToTrainWith <- reactive({
     if(input$submitPredict){
-      colnames(patientData())[sapply(patientData(), function(col) any(!is.na(col)))]
+      
+      list <- setdiff(names(patientData()), c("Stage","Performance_Status","Smoking_Pack_Years","Tumor_Location","Survival","Patient_ID", "Survival_Months","Stage","Gender","Ethnicity","Smoking_History","Insurance_Type","Treatment"))
+      
     } else{
-      list <- setdiff(names(data()), c("Tumor_Location","Survival","Patient_ID", "Survival_Months","Stage","Gender","Ethnicity","Smoking_History","Insurance_Type","Treatment"))
-     
-      list
+      list <- setdiff(names(data()), c("Stage","Performance_Status","Smoking_Pack_Years","Tumor_Location","Survival","Patient_ID", "Survival_Months","Stage","Gender","Ethnicity","Smoking_History","Insurance_Type","Treatment"))
+      
     }
+    list
     
     
   })
@@ -314,11 +383,13 @@ server <- function(input,output){
     if (!input$submitPredict) {
       return(NULL)
     }
-    patient_data_aligned <- align_columns(patientData(), knnresult()$training)
+    pd <- patientData()[, listToTrainWith()]
     new_pred <- knn(train = knnresult()$training[, listToTrainWith()],
-                    test = patient_data_aligned,
+                    test = pd,
                     cl = knnresult()$training$Survival, k = 5)
-    paste("Predictions:", paste(new_pred, collapse = ", "))
+    result <- "Lives for 5 years or more"
+    if(new_pred==0){result = "Dies within 5 years"}
+    paste("Prediction:", paste(result))
   })
   
   
