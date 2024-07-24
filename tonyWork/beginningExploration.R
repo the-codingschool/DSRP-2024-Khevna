@@ -1,9 +1,12 @@
 library(utils)
 library(ggcorrplot)
+library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(reshape2)
+
 # Get csv file
-# 1. Read the data from a CSV file.
+# 1. Read the data from a CSV file and set working directory (This may be different for you)
 setwd("C:/Users/Tony/OneDrive/Documents/tonyR/DSRP-2024-Khevna/tonyWork")
 data <- read.csv("../data/lung_cancer_data.csv")
 
@@ -14,22 +17,22 @@ head(data)
 tail(data)
 
 # 4. Determine the datatype of each column.
-sapply(data, class)
+t(sapply(data, class))
 
 # 5. Determine the number of rows and columns in the Data.
 dim(data)
 
 # 6. Identify the most common and unique values in categorical columns.
 categoricalData=select(data,c("Gender","Smoking_History","Tumor_Location","Stage","Treatment","Ethnicity","Performance_Status","Insurance_Type"))
-sapply(categoricalData, function(col) {
+t(sapply(categoricalData, function(col) {
   names(sort(table(col), decreasing = TRUE))[1]  # Most common value
-})
-sapply(categoricalData, function(col) {
+}))
+t(sapply(categoricalData, function(col) {
   names(sort(table(col), increasing = TRUE))[1]  # Most unique value
-})
+}))
 
 # 7. Calculate the number of unique values in categorical column.
-sapply(categoricalData, function(col) length(unique(col)))
+t(sapply(categoricalData, function(col) length(unique(col))))
 
 # 8. Explore the mean, median, and sum for numerical columns. These statistics can provide insights into the overall distribution of the data, which can be useful in understanding the characteristics of the dataset and helping to make data-driven decisions.
 numericalData = select(data,c("Age", "Tumor_Size_mm","Survival_Months","Blood_Pressure_Systolic","Blood_Pressure_Diastolic",
@@ -76,7 +79,7 @@ for (i in 1:21) {
 # For example, Blood_Pressure_Pulse has double in the first bin and half in the last.
 
 #Test Ethnicity vs Numerical Values
-numericalDataEthnicity = select(data,c("Ethnicity","Age", "Tumor_Size_mm","Survival_Months","Blood_Pressure_Systolic","Blood_Pressure_Diastolic",
+numericalDataEthnicity = select(data,c("Ethnicity","Age","Tumor_Size_mm","Survival_Months","Blood_Pressure_Systolic","Blood_Pressure_Diastolic",
                               "Blood_Pressure_Pulse","Hemoglobin_Level","White_Blood_Cell_Count","Platelet_Count",
                               "Albumin_Level","Alkaline_Phosphatase_Level","Alanine_Aminotransferase_Level",
                               "Aspartate_Aminotransferase_Level","Creatinine_Level","LDH_Level","Calcium_Level",
@@ -104,3 +107,24 @@ ggplot(numericalDataEthnicity, aes(x = Age, y = Tumor_Size_mm, color = Ethnicity
     labs(title = paste("Scatter Plot of Age vs Tumor Size Colored by Ethnicity"),
          x = "Age",
          y = "Tumor_Size_mm")
+
+
+numericalDataStage = select(data,c("Stage","Tumor_Size_mm","Survival_Months","Blood_Pressure_Systolic","Blood_Pressure_Diastolic",
+                                       "Blood_Pressure_Pulse","Hemoglobin_Level","White_Blood_Cell_Count","Platelet_Count",
+                                       "Albumin_Level","Alkaline_Phosphatase_Level","Alanine_Aminotransferase_Level",
+                                       "Aspartate_Aminotransferase_Level","Creatinine_Level","LDH_Level","Calcium_Level",
+                                       "Phosphorus_Level","Glucose_Level","Potassium_Level","Sodium_Level"))
+
+
+ggplot(numericalDataStage,aes(x=Stage,y=Glucose_Level)) + geom_boxplot()
+
+long_data <- melt(data, variable.name = "Variable", value.name = "Value")
+
+ggplot(long_data, aes(x = Stage, y = Value)) +
+  geom_boxplot() +
+  facet_wrap(~ Variable, scales = "free_y", ncol = 5)
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+  labs(title = "Boxplots of Numerical Variables",
+       x = "Variable",
+       y = "Value")
