@@ -30,6 +30,7 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
          tabPanel("Analysis",
               navlistPanel(
                   tabPanel("Introductory Exploration", 
+                  column(8,
                   h2("Introductory Exploration"),
                   p("In this introductory exploration, we will perform a preliminary analysis of a 
                     lung cancer dataset. This exploration includes loading and inspecting the dataset,
@@ -100,9 +101,10 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                     )
                   ),
                   p("\n"),
-                  tableOutput("showDims")),
+                  tableOutput("showDims"))),
                   
                   tabPanel("Categorical Exploration",
+                  column(8,
                   h2("Categorical Exploration"),
                   
                   p("\n\n"),
@@ -141,9 +143,10 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                     )
                   ),
                   p("\n"),
-                  tableOutput("showUniqueNum")),
+                  tableOutput("showUniqueNum"))),
                   
                   tabPanel("Numerical Exploration",
+                  column(8,
                   h2("Numerical Exploration"),
                   p("\n\n"),
                   p("Now, we have done some exploration with the categorical values. Let's move onto doing some things with the numerical values now. We can find
@@ -203,7 +206,7 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                   p("\n"),
                   plotOutput("showNumBoxPlot")
                   
-              ))
+              )))
          ),
          navbarMenu("Custom Data",
               tabPanel("Import dataset",
