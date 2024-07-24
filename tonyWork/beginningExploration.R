@@ -50,14 +50,15 @@ medians
 sums
 
 # 9. Find the variance and standard deviation
-variances <- sapply(numericalData,var)
-sds <- sapply(numericalData,sd)
+variances <- t(sapply(numericalData,var))
+sds <- t(sapply(numericalData,sd))
 
 variances
 sds
 
 # Other: We want to see which variables are most correlated with each other
 correlation_matrix <- cor(numericalData,use = "complete.obs")
+
 ggcorrplot(correlation_matrix)
 
 boxplot(data$Survival_Months)
@@ -80,10 +81,10 @@ for (i in 1:21) {
 
 #Test Ethnicity vs Numerical Values
 numericalDataEthnicity = select(data,c("Ethnicity","Age","Tumor_Size_mm","Survival_Months","Blood_Pressure_Systolic","Blood_Pressure_Diastolic",
-                              "Blood_Pressure_Pulse","Hemoglobin_Level","White_Blood_Cell_Count","Platelet_Count",
-                              "Albumin_Level","Alkaline_Phosphatase_Level","Alanine_Aminotransferase_Level",
-                              "Aspartate_Aminotransferase_Level","Creatinine_Level","LDH_Level","Calcium_Level",
-                              "Phosphorus_Level","Glucose_Level","Potassium_Level","Sodium_Level"))
+                                       "Blood_Pressure_Pulse","Hemoglobin_Level","White_Blood_Cell_Count","Platelet_Count",
+                                       "Albumin_Level","Alkaline_Phosphatase_Level","Alanine_Aminotransferase_Level",
+                                       "Aspartate_Aminotransferase_Level","Creatinine_Level","LDH_Level","Calcium_Level",
+                                       "Phosphorus_Level","Glucose_Level","Potassium_Level","Sodium_Level"))
 
 longData <- gather(numericalDataEthnicity, key = "Variable", value = "Value", -Ethnicity)
 
@@ -102,18 +103,18 @@ ggplot(longData, aes(x = Ethnicity, y = Value)) +
 
 # Create and save individual scatter plots
 ggplot(numericalDataEthnicity, aes(x = Age, y = Tumor_Size_mm, color = Ethnicity)) +
-    geom_point() +
-    theme_bw() +
-    labs(title = paste("Scatter Plot of Age vs Tumor Size Colored by Ethnicity"),
-         x = "Age",
-         y = "Tumor_Size_mm")
+  geom_point() +
+  theme_bw() +
+  labs(title = paste("Scatter Plot of Age vs Tumor Size Colored by Ethnicity"),
+       x = "Age",
+       y = "Tumor_Size_mm")
 
 
 numericalDataStage = select(data,c("Stage","Tumor_Size_mm","Survival_Months","Blood_Pressure_Systolic","Blood_Pressure_Diastolic",
-                                       "Blood_Pressure_Pulse","Hemoglobin_Level","White_Blood_Cell_Count","Platelet_Count",
-                                       "Albumin_Level","Alkaline_Phosphatase_Level","Alanine_Aminotransferase_Level",
-                                       "Aspartate_Aminotransferase_Level","Creatinine_Level","LDH_Level","Calcium_Level",
-                                       "Phosphorus_Level","Glucose_Level","Potassium_Level","Sodium_Level"))
+                                   "Blood_Pressure_Pulse","Hemoglobin_Level","White_Blood_Cell_Count","Platelet_Count",
+                                   "Albumin_Level","Alkaline_Phosphatase_Level","Alanine_Aminotransferase_Level",
+                                   "Aspartate_Aminotransferase_Level","Creatinine_Level","LDH_Level","Calcium_Level",
+                                   "Phosphorus_Level","Glucose_Level","Potassium_Level","Sodium_Level"))
 
 
 ggplot(numericalDataStage,aes(x=Stage,y=Glucose_Level)) + geom_boxplot()
@@ -123,8 +124,8 @@ long_data <- melt(data, variable.name = "Variable", value.name = "Value")
 ggplot(long_data, aes(x = Stage, y = Value)) +
   geom_boxplot() +
   facet_wrap(~ Variable, scales = "free_y", ncol = 5)
-  theme_minimal() +
+theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
-  labs(title = "Boxplots of Numerical Variables",
-       x = "Variable",
-       y = "Value")
+labs(title = "Boxplots of Numerical Variables",
+     x = "Variable",
+     y = "Value")
