@@ -1,9 +1,10 @@
 library(utils)
 library(ggcorrplot)
 library(dplyr)
+library(tidyr)
 # Get csv file
 # 1. Read the data from a CSV file.
-getwd()
+setwd("C:/Users/Tony/OneDrive/Documents/tonyR/DSRP-2024-Khevna/tonyWork")
 data <- read.csv("../data/lung_cancer_data.csv")
 
 # 2. Print the first few rows of the data.
@@ -74,3 +75,33 @@ for (i in 1:21) {
 # You can see that almost everything is evenly distributed. Some of them have extra or half on the ends.
 # For example, Blood_Pressure_Pulse has double in the first bin and half in the last.
 
+#Test Ethnicity vs Numerical Values
+numericalDataEthnicity = select(data,c("Ethnicity","Age", "Tumor_Size_mm","Survival_Months","Blood_Pressure_Systolic","Blood_Pressure_Diastolic",
+                              "Blood_Pressure_Pulse","Hemoglobin_Level","White_Blood_Cell_Count","Platelet_Count",
+                              "Albumin_Level","Alkaline_Phosphatase_Level","Alanine_Aminotransferase_Level",
+                              "Aspartate_Aminotransferase_Level","Creatinine_Level","LDH_Level","Calcium_Level",
+                              "Phosphorus_Level","Glucose_Level","Potassium_Level","Sodium_Level"))
+
+longData <- gather(numericalDataEthnicity, key = "Variable", value = "Value", -Ethnicity)
+
+# Create boxplots
+ggplot(longData, aes(x = Ethnicity, y = Value)) +
+  geom_boxplot() +
+  facet_wrap(~Variable, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Boxplots of Variables by Ethnicity",
+       x = "Ethnicity",
+       y = "Value")
+
+
+# Scatter plots for age vs other values colored by ethnicity
+
+longData <- gather(numericalDataEthnicity, key = "Variable", value = "Value", -Ethnicity,-Age)
+# Create and save individual scatter plots
+ggplot(numericalDataEthnicity, aes(x = Age, y = Tumor_Size_mm, color = Ethnicity)) +
+    geom_point() +
+    theme_bw() +
+    labs(title = paste("Scatter Plot of Age vs Tumor Size Colored by Ethnicity"),
+         x = "Age",
+         y = "Tumor_Size_mm")
