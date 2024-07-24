@@ -11,6 +11,7 @@ library(class)
 library(paletteer)
 library(randomForest)
 library(shinyjs)
+library(ggcorrplot)
 
 set.seed(42)
 
@@ -60,6 +61,7 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                         verbatimTextOutput("headCode")
                     )
                   ),
+                  p("\n"),
                   tableOutput("showHead"),
                   
                   p("\n\n"),
@@ -71,6 +73,7 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                         verbatimTextOutput("tailCode")
                     )
                   ),
+                  p("\n"),
                   tableOutput("showTail"),
                   
                   p("\n\n"),
@@ -82,6 +85,7 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                         verbatimTextOutput("typeCode")
                     )
                   ),
+                  p("\n"),
                   tableOutput("showType"),
                   
                   p("\n\n"),
@@ -95,7 +99,11 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                         verbatimTextOutput("dimsCode")
                     )
                   ),
-                  tableOutput("showDims"),
+                  p("\n"),
+                  tableOutput("showDims")),
+                  
+                  tabPanel("Categorical Exploration",
+                  h2("Categorical Exploration"),
                   
                   p("\n\n"),
                   p("We should find the most common value for each categorical variable. 
@@ -107,6 +115,7 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                         verbatimTextOutput("commonCode")
                     )
                   ),
+                  p("\n"),
                   tableOutput("showCommon"),
                   
                   p("\n\n"),
@@ -119,6 +128,7 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                         verbatimTextOutput("uniqueCode")
                     )
                   ),
+                  p("\n"),
                   tableOutput("showUnique"),
                   
                   p("\n\n"),
@@ -130,8 +140,11 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                         verbatimTextOutput("uniqueNumCode")
                     )
                   ),
-                  tableOutput("showUniqueNum"),
+                  p("\n"),
+                  tableOutput("showUniqueNum")),
                   
+                  tabPanel("Numerical Exploration",
+                  h2("Numerical Exploration"),
                   p("\n\n"),
                   p("Now, we have done some exploration with the categorical values. Let's move onto doing some things with the numerical values now. We can find
                     statistics such as the mean, median, and sum."),
@@ -139,15 +152,57 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                   actionButton("show_MMS_code", "Show Code",class = "btn btn-primary"),
                   hidden(
                     div(id = "MMS_code_snippet",
-                        verbatimTextOutput("MMSNumCode")
+                        verbatimTextOutput("MMSCode")
                     )
                   ),
+                  p("\n"),
                   p("Mean:"),
                   tableOutput("showMean"),
                   p("Median:"),
                   tableOutput("showMedian"),
                   p("Mode"),
-                  tableOutput("showSum")
+                  tableOutput("showSum"),
+                  
+                  p("\n\n"),
+                  p("Let's also find the variances and standard deviations."),
+                  
+                  actionButton("show_varsd_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "varsd_code_snippet",
+                        verbatimTextOutput("varsdCode")
+                    )
+                  ),
+                  p("\n"),
+                  p("Variance:"),
+                  tableOutput("showVar"),
+                  p("Standard Deviation:"),
+                  tableOutput("showSd"),
+                  
+                  p("\n\n"),
+                  p("Now that we have all of these statistics, lets see if the numerical values have any correlation with each other"),
+                  
+                  actionButton("show_corr_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "corr_code_snippet",
+                        verbatimTextOutput("corrCode")
+                    )
+                  ),
+                  p("\n"),
+                  plotOutput("showCorr"),
+                  
+                  p("\n\n"),
+                  p("Hmm, that's strange. Let's switch to something else for now: creating boxplots for each numerical value. 
+                    This way, we can see if there are patterns such as weighted distribution"),
+                  
+                  actionButton("show_numBoxPlot_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "numBoxPlot_code_snippet",
+                        verbatimTextOutput("numBoxPlotCode")
+                    )
+                  ),
+                  p("\n"),
+                  plotOutput("showNumBoxPlot")
+                  
               ))
          ),
          navbarMenu("Custom Data",
@@ -313,13 +368,15 @@ server <- function(input,output){
   })
   
   output$importCode <- renderText({
-    "library(utils)\n
-library(ggcorrplot)\n
-library(dplyr)\n
-library(tidyr)\n
-# Get csv file\n
-# 1. Read the data from a CSV file and set working directory (This may be different for you)\n
-setwd(\"C:/Users/Tony/OneDrive/Documents/tonyR/DSRP-2024-Khevna/tonyWork\")\n
+    "library(utils)
+library(ggcorrplot)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(reshape2)
+# Get csv file
+# 1. Read the data from a CSV file and set working directory (This may be different for you)
+setwd(\"C:/Users/Tony/OneDrive/Documents/tonyR/DSRP-2024-Khevna/tonyWork\")
 data <- read.csv(\"../data/lung_cancer_data.csv\")"
   })
   
@@ -383,9 +440,9 @@ data <- read.csv(\"../data/lung_cancer_data.csv\")"
   })
   
   output$commonCode <- renderText({
-    "t(categoricalData=select(data,c(\"Gender\",\"Smoking_History\",\"Tumor_Location\",\"Stage\",\"Treatment\",\"Ethnicity\",\"Performance_Status\",\"Insurance_Type\"))\n
-sapply(categoricalData, function(col) {\n
-  names(sort(table(col), decreasing = TRUE))[1] \n
+    "t(categoricalData=select(data,c(\"Gender\",\"Smoking_History\",\"Tumor_Location\",\"Stage\",\"Treatment\",\"Ethnicity\",\"Performance_Status\",\"Insurance_Type\"))
+sapply(categoricalData, function(col) {
+  names(sort(table(col), decreasing = TRUE))[1] 
 }))"
   })
   
@@ -401,10 +458,14 @@ sapply(categoricalData, function(col) {\n
   })
   
   output$uniqueCode <- renderText({
-    "t(categoricalData=select(data,c(\"Gender\",\"Smoking_History\",\"Tumor_Location\",\"Stage\",\"Treatment\",\"Ethnicity\",\"Performance_Status\",\"Insurance_Type\"))\n
-sapply(categoricalData, function(col) {\n
-  names(sort(table(col), increasing = TRUE))[1] \n
+    "t(categoricalData=select(data,c(\"Gender\",\"Smoking_History\",\"Tumor_Location\",\"Stage\",\"Treatment\",\"Ethnicity\",\"Performance_Status\",\"Insurance_Type\"))
+sapply(categoricalData, function(col) {
+  names(sort(table(col), increasing = TRUE))[1] 
 }))"
+  })
+  
+  observeEvent(input$show_unique_code, {
+    toggle(id="unique_code_snippet")
   })
   
   observeEvent(input$show_uniqueNum_code, {
@@ -420,8 +481,8 @@ sapply(categoricalData, function(col) {\n
     "t(sapply(categoricalData, function(col) length(unique(col))))"
   })
   
-  observeEvent(input$show_uniqueNum_code, {
-    toggle(id="uniqueNum_code_snippet")
+  observeEvent(input$show_MMS_code, {
+    toggle(id="MMS_code_snippet")
   })
   
   MMSnumericalData <- reactive({
@@ -443,24 +504,66 @@ sapply(categoricalData, function(col) {\n
     t(sapply(MMSnumericalData(),sum))
   })
   
-  
-  
   output$MMSCode <- renderText({
-    "numericalData = select(data,c(\"Age\", \"Tumor_Size_mm\",\"Survival_Months\",\"Blood_Pressure_Systolic\",\"Blood_Pressure_Diastolic\",\n
-                              \"Blood_Pressure_Pulse\",\"Hemoglobin_Level\",\"White_Blood_Cell_Count\",\"Platelet_Count\",\n
-                              \"Albumin_Level\",\"Alkaline_Phosphatase_Level\",\"Alanine_Aminotransferase_Level\",\n
-                              \"Aspartate_Aminotransferase_Level\",\"Creatinine_Level\",\"LDH_Level\",\"Calcium_Level\",\n
-                              \"Phosphorus_Level\",\"Glucose_Level\",\"Potassium_Level\",\"Sodium_Level\",\"Smoking_Pack_Years\"))\n
+    "numericalData = select(data,c(\"Age\", \"Tumor_Size_mm\",\"Survival_Months\",\"Blood_Pressure_Systolic\",\"Blood_Pressure_Diastolic\",
+                              \"Blood_Pressure_Pulse\",\"Hemoglobin_Level\",\"White_Blood_Cell_Count\",\"Platelet_Count\",
+                              \"Albumin_Level\",\"Alkaline_Phosphatase_Level\",\"Alanine_Aminotransferase_Level\",
+                              \"Aspartate_Aminotransferase_Level\",\"Creatinine_Level\",\"LDH_Level\",\"Calcium_Level\",
+                              \"Phosphorus_Level\",\"Glucose_Level\",\"Potassium_Level\",\"Sodium_Level\",\"Smoking_Pack_Years\"))
 
-t(sapply(numericalData,mean))\n
-t(sapply(numericalData,median))\n
+t(sapply(numericalData,mean))
+t(sapply(numericalData,median))
 t(sapply(numericalData,sum))"
   })
   
-  observeEvent(input$show_MMS_code, {
-    toggle(id="uniqueNum_code_snippet")
+  observeEvent(input$show_varsd_code, {
+    toggle(id="varsd_code_snippet")
   })
   
+  output$showVar <- renderTable({
+    t(sapply(numericalData,var))
+  })
+  output$showSd <- renderTable({
+    t(sapply(numericalData,sd))
+  })
+  
+  output$varsdCode <- renderText({
+    "t(sapply(numericalData,var))
+t(sapply(numericalData,sd))"
+  })
+  
+  output$showCorr <- renderPlot({
+        correlation_matrix <- cor(MMSnumericalData(),use = "complete.obs")
+    ggcorrplot(correlation_matrix) + labs(title="Numerical Data Correlation Matrix")
+  })
+  
+  output$corrCode <- renderText({
+    "correlation_matrix <- cor(numericalData,use = \"complete.obs\")
+ggcorrplot(correlation_matrix)"
+  })
+  
+  observeEvent(input$show_corr_code, {
+    toggle(id="corr_code_snippet")
+  })
+  
+  output$showNumBoxPlot <- renderPlot({
+    par(mfrow = c(3, 7))
+    for (i in 1:21) {
+      boxplot(MMSnumericalData()[, i], main = colnames(numericalData)[i], col = "lightblue")
+    }
+    
+  })
+  
+  output$numBoxPlotCode <- renderText({
+    "par(mfrow = c(3, 7))
+    for (i in 1:21) {
+      boxplot(MMSnumericalData()[, i], main = colnames(numericalData)[i], col = \"lightblue\")
+    }"
+  })
+  
+  observeEvent(input$show_numBoxPlot_code, {
+    toggle(id="numBoxPlot_code_snippet")
+  })
   
   
   
