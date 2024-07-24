@@ -10,12 +10,14 @@ library(caTools)
 library(class)
 library(paletteer)
 library(randomForest)
+library(shinyjs)
 
 set.seed(42)
 
 
 
 ui <- fluidPage(theme = shinytheme("sandstone"),
+    useShinyjs(),
     navbarPage(title = "Lung Cancer Data Science - Tony",
          tabPanel("Introduction",
               h2("About the Dataset"),
@@ -25,8 +27,128 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
               h2("About Me")
          ),
          tabPanel("Analysis",
-              h2("Introductory Exploration")    
+              navlistPanel(
+                  tabPanel("Introductory Exploration", 
+                  h2("Introductory Exploration"),
+                  p("In this introductory exploration, we will perform a preliminary analysis of a 
+                    lung cancer dataset. This exploration includes loading and inspecting the dataset,
+                    summarizing the data, and visualizing various relationships and distributions within the dataset."),
                   
+                  
+                  p("To begin any meaningful analysis, it is essential to first import the necessary 
+                    libraries and the dataset into our analysis environment. This step is crucial as 
+                    it allows us to access and manipulate the data necessary for our exploratory analysis.
+                    By importing the dataset, we ensure that we have a structured and organized format of
+                    the data, typically in CSV or another accessible format, that can be easily read and
+                    processed by our analytical tools."),
+                  
+                         actionButton("show_import_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "import_code_snippet",
+                        verbatimTextOutput("importCode")
+                        
+                    )
+                  ),
+                  
+                  p("\n\n"),
+                  p("We should first look at what the dataset contains and some of 
+                    the values at the top of the dataset to get a general gist of the variables and their types"),
+                  
+                  actionButton("show_head_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "head_code_snippet",
+                        verbatimTextOutput("headCode")
+                    )
+                  ),
+                  tableOutput("showHead"),
+                  
+                  p("\n\n"),
+                  p("We can also take a peak at the bottom of the dataset as well."),
+                  
+                  actionButton("show_tail_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "tail_code_snippet",
+                        verbatimTextOutput("tailCode")
+                    )
+                  ),
+                  tableOutput("showTail"),
+                  
+                  p("\n\n"),
+                  p("Now, we saw some of the different values. However, we should still find the exact datatype of each column."),
+                  
+                  actionButton("show_type_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "type_code_snippet",
+                        verbatimTextOutput("typeCode")
+                    )
+                  ),
+                  tableOutput("showType"),
+                  
+                  p("\n\n"),
+                  p("We also need to get the number of rows and columns for dataset manipulation
+                    purposes. This dataset is already very clean because there are no NAs or different values.
+                    This is because it is the result of a computer generation."),
+                  
+                  actionButton("show_dims_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "dims_code_snippet",
+                        verbatimTextOutput("dimsCode")
+                    )
+                  ),
+                  tableOutput("showDims"),
+                  
+                  p("\n\n"),
+                  p("We should find the most common value for each categorical variable. 
+                    We excluded the numerical values as their modes won't show anything as the values are all different"),
+                  
+                  actionButton("show_common_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "common_code_snippet",
+                        verbatimTextOutput("commonCode")
+                    )
+                  ),
+                  tableOutput("showCommon"),
+                  
+                  p("\n\n"),
+                  p("We should also find the most unique value for each categorical variable as well. 
+                    Again, we excluded the numerical values as they are almost all unique"),
+                  
+                  actionButton("show_unique_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "unique_code_snippet",
+                        verbatimTextOutput("uniqueCode")
+                    )
+                  ),
+                  tableOutput("showUnique"),
+                  
+                  p("\n\n"),
+                  p("We have the most and least common, but we also need the total number of unique values for each categorical variable"),
+                  
+                  actionButton("show_uniqueNum_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "uniqueNum_code_snippet",
+                        verbatimTextOutput("uniqueNumCode")
+                    )
+                  ),
+                  tableOutput("showUniqueNum"),
+                  
+                  p("\n\n"),
+                  p("Now, we have done some exploration with the categorical values. Let's move onto doing some things with the numerical values now. We can find
+                    statistics such as the mean, median, and sum."),
+                  
+                  actionButton("show_MMS_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "MMS_code_snippet",
+                        verbatimTextOutput("MMSNumCode")
+                    )
+                  ),
+                  p("Mean:"),
+                  tableOutput("showMean"),
+                  p("Median:"),
+                  tableOutput("showMedian"),
+                  p("Mode"),
+                  tableOutput("showSum")
+              ))
          ),
          navbarMenu("Custom Data",
               tabPanel("Import dataset",
@@ -89,7 +211,7 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                   ),
                   column(12,
                       textInput("submitSmoking_Pack_YearsName", "Enter Smoking_Pack_Years Variable Name:", "Smoking_Pack_Years")
-                  ),
+                  )
                   
                   
               )
@@ -180,6 +302,168 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
   
 )
 server <- function(input,output){
+  
+  dataSetConstant <- reactive({
+    df <- read.csv("../data/lung_cancer_data.csv")
+    return(df)
+  })
+  
+  output$showImport <- renderTable({
+    head(dataSetConstant())
+  })
+  
+  output$importCode <- renderText({
+    "library(utils)\n
+library(ggcorrplot)\n
+library(dplyr)\n
+library(tidyr)\n
+# Get csv file\n
+# 1. Read the data from a CSV file and set working directory (This may be different for you)\n
+setwd(\"C:/Users/Tony/OneDrive/Documents/tonyR/DSRP-2024-Khevna/tonyWork\")\n
+data <- read.csv(\"../data/lung_cancer_data.csv\")"
+  })
+  
+  observeEvent(input$show_import_code, {
+    toggle(id="import_code_snippet")
+  })
+  
+  output$showHead <- renderTable({
+    head(dataSetConstant())
+  })
+  
+  output$headCode <- renderText({
+    "head(data)"
+  })
+  
+  observeEvent(input$show_head_code, {
+    toggle(id="head_code_snippet")
+  })
+  
+  output$showTail <- renderTable({
+    head(dataSetConstant())
+  })
+  
+  output$tailCode <- renderText({
+    "tail(data)"
+  })
+  
+  observeEvent(input$show_tail_code, {
+    toggle(id="tail_code_snippet")
+  })
+  
+  output$showType <- renderTable({
+    t(sapply(dataSetConstant(), class))
+  })
+  
+  output$typeCode <- renderText({
+    "t(sapply(data, class))"
+  })
+  
+  observeEvent(input$show_type_code, {
+    toggle(id="type_code_snippet")
+  })
+  
+  output$showDims <- renderTable({
+    t(dim(dataSetConstant()))
+  })
+  
+  output$dimsCode <- renderText({
+    "t(dim(data))"
+  })
+  
+  observeEvent(input$show_dims_code, {
+    toggle(id="dims_code_snippet")
+  })
+  
+  output$showCommon <- renderTable({
+    categoricalData=select(dataSetConstant(),c("Gender","Smoking_History","Tumor_Location","Stage","Treatment","Ethnicity","Performance_Status","Insurance_Type"))
+    t(sapply(categoricalData, function(col) {
+      names(sort(table(col), decreasing = TRUE))[1]  # Most common value
+    }))
+  })
+  
+  output$commonCode <- renderText({
+    "t(categoricalData=select(data,c(\"Gender\",\"Smoking_History\",\"Tumor_Location\",\"Stage\",\"Treatment\",\"Ethnicity\",\"Performance_Status\",\"Insurance_Type\"))\n
+sapply(categoricalData, function(col) {\n
+  names(sort(table(col), decreasing = TRUE))[1] \n
+}))"
+  })
+  
+  observeEvent(input$show_common_code, {
+    toggle(id="common_code_snippet")
+  })
+  
+  output$showUnique <- renderTable({
+    categoricalData=select(dataSetConstant(),c("Gender","Smoking_History","Tumor_Location","Stage","Treatment","Ethnicity","Performance_Status","Insurance_Type"))
+    t(sapply(categoricalData, function(col) {
+      names(sort(table(col), increasing = TRUE))[1]  # Most common value
+    }))
+  })
+  
+  output$uniqueCode <- renderText({
+    "t(categoricalData=select(data,c(\"Gender\",\"Smoking_History\",\"Tumor_Location\",\"Stage\",\"Treatment\",\"Ethnicity\",\"Performance_Status\",\"Insurance_Type\"))\n
+sapply(categoricalData, function(col) {\n
+  names(sort(table(col), increasing = TRUE))[1] \n
+}))"
+  })
+  
+  observeEvent(input$show_uniqueNum_code, {
+    toggle(id="uniqueNum_code_snippet")
+  })
+  
+  output$showUniqueNum <- renderTable({
+    categoricalData=select(dataSetConstant(),c("Gender","Smoking_History","Tumor_Location","Stage","Treatment","Ethnicity","Performance_Status","Insurance_Type"))
+    t(sapply(categoricalData, function(col) length(unique(col))))
+  })
+  
+  output$uniqueNumCode <- renderText({
+    "t(sapply(categoricalData, function(col) length(unique(col))))"
+  })
+  
+  observeEvent(input$show_uniqueNum_code, {
+    toggle(id="uniqueNum_code_snippet")
+  })
+  
+  MMSnumericalData <- reactive({
+    numericalData = select(dataSetConstant(),c("Age", "Tumor_Size_mm","Survival_Months","Blood_Pressure_Systolic","Blood_Pressure_Diastolic",
+                                  "Blood_Pressure_Pulse","Hemoglobin_Level","White_Blood_Cell_Count","Platelet_Count",
+                                  "Albumin_Level","Alkaline_Phosphatase_Level","Alanine_Aminotransferase_Level",
+                                  "Aspartate_Aminotransferase_Level","Creatinine_Level","LDH_Level","Calcium_Level",
+                                  "Phosphorus_Level","Glucose_Level","Potassium_Level","Sodium_Level","Smoking_Pack_Years"))
+    
+  })
+  
+  output$showMean <- renderTable({
+    t(sapply(MMSnumericalData(),mean))
+  })
+  output$showMedian <- renderTable({
+    t(sapply(MMSnumericalData(),median))
+  })
+  output$showSum <- renderTable({
+    t(sapply(MMSnumericalData(),sum))
+  })
+  
+  
+  
+  output$MMSCode <- renderText({
+    "numericalData = select(data,c(\"Age\", \"Tumor_Size_mm\",\"Survival_Months\",\"Blood_Pressure_Systolic\",\"Blood_Pressure_Diastolic\",\n
+                              \"Blood_Pressure_Pulse\",\"Hemoglobin_Level\",\"White_Blood_Cell_Count\",\"Platelet_Count\",\n
+                              \"Albumin_Level\",\"Alkaline_Phosphatase_Level\",\"Alanine_Aminotransferase_Level\",\n
+                              \"Aspartate_Aminotransferase_Level\",\"Creatinine_Level\",\"LDH_Level\",\"Calcium_Level\",\n
+                              \"Phosphorus_Level\",\"Glucose_Level\",\"Potassium_Level\",\"Sodium_Level\",\"Smoking_Pack_Years\"))\n
+
+t(sapply(numericalData,mean))\n
+t(sapply(numericalData,median))\n
+t(sapply(numericalData,sum))"
+  })
+  
+  observeEvent(input$show_MMS_code, {
+    toggle(id="uniqueNum_code_snippet")
+  })
+  
+  
+  
+  
   
   data <- reactive ({
     if(is.null(input$inputCSV)){
