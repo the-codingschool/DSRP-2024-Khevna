@@ -13,20 +13,6 @@ library(randomForest)
 
 set.seed(42)
 
-align_columns <- function(patient_df, training_df) {
-  # Get the columns of the training data
-  training_cols <- names(training_df)
-  
-  # Add missing columns to the patient data with default values
-  for (col in setdiff(training_cols, names(patient_df))) {
-    patient_df[[col]] <- 0
-  }
-  
-  # Ensure columns are in the same order as in training data
-  patient_df <- patient_df[training_cols]
-  
-  return(patient_df)
-}
 
 
 ui <- fluidPage(theme = shinytheme("sandstone"),

@@ -97,7 +97,6 @@ ggplot(longData, aes(x = Ethnicity, y = Value)) +
 
 # Scatter plots for age vs other values colored by ethnicity
 
-longData <- gather(numericalDataEthnicity, key = "Variable", value = "Value", -Ethnicity,-Age)
 # Create and save individual scatter plots
 ggplot(numericalDataEthnicity, aes(x = Age, y = Tumor_Size_mm, color = Ethnicity)) +
     geom_point() +
