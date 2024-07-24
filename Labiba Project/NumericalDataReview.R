@@ -7,6 +7,8 @@ library(ggplot2)
 library(tidyr)
 
 
+data = data.frame(data)
+head(data)
 data = clean_names(data)
 names(data) ### changed the names from upper case to lower case 
 
@@ -19,122 +21,177 @@ str(data) ## 'data.frame':	23658 obs. of  38 variables:
 
 get_dupes(data) ## no duplicates found either 
 
-## Looking for animalies 
-## total 20 num/ int columns 
+checking_age = data %>%
+  group_by(treatment) %>%
+  summarise(med_age = median(age),
+            mean_age = mean(age)) %>%
+  mutate(differnece = med_age -  mean_age) 
+  
+checking_age
 
-summary(data$age) # 1
-
-#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#30.00   42.00   54.00   54.44   67.00   79.00 
-#mean off by =  -0.44 #slightly right skewed 
-
-summary(data$tumor_size_mm)
-
-#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#10.00   32.97   55.30   55.38   78.19   99.99 
-#mean off by = -.38 #slightly right skewed
-
-summary(data$survival_months)
-
-#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#1.00   30.00   60.00   59.86   89.00  119.00 
-#median off by = 0.14 left skewed 
-
-#summary(data$performance_status) ??????????
-
-#data$performance_status ## what is this ?????????
-
-summary(data$blood_pressure_systolic)
-
-#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#90.0   112.0   134.0   134.5   157.0   179.0 
-# mean off by  -.5 right skewed 
-
-summary(data$blood_pressure_diastolic)
-
-#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#60.00   72.00   85.00   84.48   97.00  109.00 
-#mean off by .52 left skewed 
-
-summary(data$blood_pressure_pulse)
-
-#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#60.00   70.00   80.00   79.59   90.00   99.00 
-#mean off by 0.1
-
-summary(data$hemoglobin_level)
-
-#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#10.00   11.99   13.98   14.00   16.00   18.00 
-#mean off by - .02
-
-summary(data$white_blood_cell_count)
-
-#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#3.501   5.109   6.730   6.736   8.354  10.000 
-#mean off by  6.730  - 6.736 =  -0.006
-
-summary(data$platelet_count)
-
-#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#150.0   224.9   299.9   299.9   375.4   450.0 
-
-#d = 0
-
-summary(data$albumin_level)
-
-#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#3.000   3.505   4.000   3.999   4.499   5.000 
-
-#d = .001 
+data %>%
+  group_by(treatment) %>%  
+  summarise(med_tumor_size_mm = median(tumor_size_mm),
+            mean_tumor_size_mm = mean(tumor_size_mm)) %>%
+  mutate(differnece = med_tumor_size_mm -  mean_tumor_size_mm) 
 
 
-#### easier way summary(data[,25:30])
+names(data)
 
-## input this into a table 
+boxplot(data$age, data$tumor_size_mm, data$survival_months, 
+        data$blood_pressure_systolic, 
+        data$blood_pressure_diastolic,
+        data$blood_pressure_pulse, 
+        data$alkaline_phosphatase_level, 
+        data$alanine_aminotransferase_level, 
+        data$aspartate_aminotransferase_level, 
+        data$ldh_level, 
+        data$glucose_level, 
+        data$smoking_pack_years,
+        names = c("Age", "Tumor Size", "Survival Months", "BP Systolic", "BP Diastolic", 
+                  "BP Pulse", "Alkaline Phosphatase", "Alanine Aminotransferase", 
+                  "Aspartate Aminotransferase", "LDH Level", "Glucose Level", 
+                  "Smoking Pack Years"),
+        main = "Boxplot: Checking for Outliers", 
+        ylab='Scale',
+        las = 2 # Rotate x-axis labels for better readability
+        )
 
-##create my table 
+boxplot(data$performance_status, 
+        data$hemoglobin_level, 
+        data$white_blood_cell_count, 
+        data$albumin_level, 
+        data$creatinine_level,
+        data$calcium_level, 
+        data$phosphorus_level,
+        data$potassium_level, 
+        main = "Boxplot: Checking for Outliers", 
+        names = c("Performace Status", "Hemoglobin Level", " White Blood Cell Count", 
+                  "Albumin Level", "Creatinine Level", "Calcium Level", 
+                  "Phosphorus Level", 
+                  "Potassium Level"),
+        ylab = "Scale", 
+        las = 2)
 
-new_data <- data.frame(
-  variable_name = c('age', 
-                    'tumor_size_mm', 
-                    'survival_months', 
-                    'blood_pressure_systolic', 
-                    'blood_pressure_diastolic',
-                    'blood_pressure_pulse',
-                    'hemoglobin_level',
-                    'white_blood_cell_count',
-                    'platelet_count',
-                    'albumin_level',
-                    'alkaline_phosphatase_level',
-                    'alanine_aminotransferase_level',
-                    'aspartate_aminotransferase_level',
-                    'creatinine_level',
-                    'ldh_level',
-                    'calcium_level',
-                    'phosphorus_level',
-                    'glucose_level',
-                    'potassium_level',
-                    'sodium_level',
-                    'smoking_pack_years'),
-  minimum = c(30.00 , 10.00, 1.00, 90.0 , ),
-  first_quartile = c(88.0, 85.0),
-  median = c(550, 500),
-  mean = c(0.1, 0.11)
-  thrid_quartile = c(0.1, 0.11)
-  maximum = 
-)
+boxplot(data$platelet_count, main = "Boxplot: Checking for Outliers",
+       ylab='Scale', xlab='Platelet Count')
 
-summary(data$age)
-summary(data$tumor_size_mm)
-summary(data$survival_months)
+boxplot(data$sodium_level,  main = "Boxplot: Checking for Outliers",
+        ylab='Scale', xlab='Sodium Level')
 
-df = summary(data[, 21:38])
+##### no anomalies found ##########
 
-head(df)
+#######.  Visualizing the data ##### 
 
-summarise(group_by(df, Min, 1st Qu, Median, Mean, 3rd Qu, Max.))
+ggplot(data, aes(x = treatment, fill = treatment)) +
+  geom_bar() +
+  labs(title = "Counts of Patients by Treatment Type",
+       x = "Treatment Type",
+       y = "Count")
+
+ggplot(data, aes(x = stage, fill = stage)) +
+  geom_bar() +
+  labs(title = "Counts of Patients by Cancer Stage",
+       x = "Cancer Stage",
+       y = "Count")
+
+ggplot(data, aes(x = gender, fill = gender)) +
+  geom_bar() +
+  labs(title = "Counts of Patients by Gender",
+       x = "Gender",
+       y = "Count")
+
+names(data)
+
+ggplot(data, aes(x = smoking_history, fill = smoking_history)) +
+  geom_bar() +
+  labs(title = "Counts of Patients by Smoking History",
+       x = "Smoking History Categories",
+       y = "Count")
+
+ggplot(data, aes(x = tumor_location, fill = tumor_location)) +
+  geom_bar() +
+  labs(title = "Counts of Patients by Tumor Location",
+       x = "Tumor Location",
+       y = "Count")
+
+ggplot(data, aes(x = ethnicity, fill = ethnicity)) +
+  geom_bar() +
+  labs(title = "Counts of Patients by Ethnicity",
+       x = "Ethnicity",
+       y = "Count")
+
+ggplot(data, aes(x = ethnicity, fill = ethnicity)) +
+  geom_bar() +
+  labs(title = "Counts of Patients by Ethnicity",
+       x = "Ethnicity",
+       y = "Count")
+
+ggplot(data, aes(x = insurance_type, fill = insurance_type)) +
+  geom_bar() +
+  labs(title = "Counts of Patients by Insurance Type",
+       x = "Insurance Type",
+       y = "Count")
 
 
+ggplot(data, aes(x = insurance_type, fill = insurance_type)) +
+  geom_bar() +
+  labs(title = "Counts of Patients by Insurance Type",
+       x = "Insurance Type",
+       y = "Count")
 
+
+ggplot(data, aes(x = family_history, fill = family_history)) +
+  geom_bar() +
+  labs(title = "Counts of Patients by Family History",
+       x = "Family History",
+       y = "Count")
+
+ggplot(data, aes(x = comorbidity_diabetes, fill = comorbidity_diabetes)) +
+  geom_bar() +
+  labs(title = "Counts of Patients with Diabetes",
+       x = "Diabetes (yes or no)",
+       y = "Count")
+
+ggplot(data, aes(x = comorbidity_hypertension, fill = comorbidity_hypertension)) +
+  geom_bar() +
+  labs(title = "Counts of Patients with Hypertension",
+       x = "Hypertension (yes or no)",
+       y = "Count")
+
+ggplot(data, aes(x = comorbidity_heart_disease, fill = comorbidity_heart_disease)) +
+  geom_bar() +
+  labs(title = "Counts of Patients with Heart Disease",
+       x = "Heart Disease (yes or no)",
+       y = "Count")
+ggplot(data, aes(x = comorbidity_chronic_lung_disease, fill =  comorbidity_chronic_lung_disease)) +
+  geom_bar() +
+  labs(title = "Counts of Patients with Chronic Lung Disease",
+       x = "Chronic Lung Disease (yes or no)",
+       y = "Count")
+
+ggplot(data, aes(x = comorbidity_kidney_disease, fill = comorbidity_kidney_disease)) +
+  geom_bar() +
+  labs(title = "Counts of Patients with Kidney Disease",
+       x = "Kidney Disease (yes or no)",
+       y = "Count")
+
+ggplot(data, aes(x = comorbidity_autoimmune_disease, fill = comorbidity_autoimmune_disease)) +
+  geom_bar() +
+  labs(title = "Counts of Patients with Autoimmune Disease",
+       x = "Autoimmune Disease (yes or no)",
+       y = "Count")
+
+ggplot(data, aes(x = comorbidity_other, fill = comorbidity_other)) +
+  geom_bar() +
+  labs(title = "Counts of Patients with other Diseases",
+       x = "Other Diseases (yes or no)",
+       y = "Count")
+
+#### find a easier way to do this ########
+
+ggplot(data, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red") +
+  labs(x = "Column", y = "Row", title = "Example Heatmap")
 
