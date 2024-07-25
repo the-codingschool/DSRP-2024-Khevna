@@ -1,27 +1,43 @@
-data = read.csv("/Users/labibawajihasiddiquei/Downloads/lung_cancer_data.csv")
+---
+title: "Visualizing Data and Clustering Codes"
+format: html
+editor: visual
+---
 
+## Reading In the Data
+
+```{r}
+data = read.csv("/Users/labibawajihasiddiquei/Downloads/lung_cancer_data.csv")
 
 library(titanic)
 library(dplyr)
 library(janitor)
 library(ggplot2)
 library(tidyr)
+```
 
+## Cleaning
 
-#data = data.frame(data)
-head(data)
+**Read the book and see if you do anything else**
+
+```{r}
 data = clean_names(data)
-names(data) ### changed the names from upper case to lower case 
 
-str(data) # data.frame':	23658 obs. of  38 variables:
+#names(data) ### changed the names from upper case to lower case 
+
+#str(data) # data.frame':	23658 obs. of  38 variables:
 
 data = na.omit(data) 
-str(data) ## 'data.frame':	23658 obs. of  38 variables:
+#str(data) ## 'data.frame':	23658 obs. of  38 variables:
 
 ## there are no missig data points 
 
 get_dupes(data) ## no duplicates found either 
+```
 
+## Grouping
+
+```{r}
 checking_age = data %>%
   group_by(treatment) %>%
   summarise(med_age = median(age),
@@ -29,16 +45,18 @@ checking_age = data %>%
   mutate(differnece = med_age -  mean_age) 
   
 checking_age
+```
 
-data %>%
+```{r}
   group_by(treatment) %>%  
   summarise(med_tumor_size_mm = median(tumor_size_mm),
             mean_tumor_size_mm = mean(tumor_size_mm)) %>%
-  mutate(differnece = med_tumor_size_mm -  mean_tumor_size_mm) 
+  mutate(differnece = med_tumor_size_mm -  mean_tumor_size_mm)
+```
 
+## BoxPlots to Check For Outliers
 
-names(data)
-
+```{r}
 boxplot(data$age, data$tumor_size_mm, data$survival_months, 
         data$blood_pressure_systolic, 
         data$blood_pressure_diastolic,
@@ -57,7 +75,9 @@ boxplot(data$age, data$tumor_size_mm, data$survival_months,
         ylab='Scale',
         las = 2 # Rotate x-axis labels for better readability
         )
+```
 
+```{r}
 boxplot(data$performance_status, 
         data$hemoglobin_level, 
         data$white_blood_cell_count, 
@@ -73,17 +93,21 @@ boxplot(data$performance_status,
                   "Potassium Level"),
         ylab = "Scale", 
         las = 2)
+```
 
+```{r}
 boxplot(data$platelet_count, main = "Boxplot: Checking for Outliers",
        ylab='Scale', xlab='Platelet Count')
+```
 
+```{r}
 boxplot(data$sodium_level,  main = "Boxplot: Checking for Outliers",
         ylab='Scale', xlab='Sodium Level')
+```
 
-##### no anomalies found ##########
+## BarPlots to Look at the Distribution
 
-#######.  Visualizing the data ##### 
-
+```{r}
 ggplot(data, aes(x = treatment, fill = treatment)) +
   geom_bar() +
   labs(title = "Counts of Patients by Treatment Type",
@@ -188,33 +212,11 @@ ggplot(data, aes(x = comorbidity_other, fill = comorbidity_other)) +
   labs(title = "Counts of Patients with other Diseases",
        x = "Other Diseases (yes or no)",
        y = "Count")
+```
 
-#### find a easier way to do this ########
+## Character to Num Value
 
-ggplot(data, aes(x = Var1, y = Var2, fill = value)) +
-  geom_tile() +
-  scale_fill_gradient(low = "white", high = "red") +
-  labs(x = "Column", y = "Row", title = "Example Heatmap")
-
-#geom_smooth()
-
-#heatmap(data)
-
-#geom_tile(data)
-
-#?factor()
-
-#factor(data)
-
-#factor(data$var, levels = c(“cat1”,”cat2”,”cat2”))
-
-
-#head(data)
-#df = as.logical(data$)
-
-## making categorial values into numerical
-
-names(data)
+```{r}
 #data = mutate(data, comorbidity_diabetes = ifelse(comorbidity_diabetes == 'Yes', 1, 0), 
              # comorbidity_hypertension = ifelse(comorbidity_hypertension == 'Yes', 1, 0),
              # family_history = ifelse(family_history == 'Yes', 1, 0), 
@@ -223,97 +225,58 @@ names(data)
              # comorbidity_kidney_disease = ifelse(comorbidity_kidney_disease == 'Yes', 1, 0),
               #comorbidity_autoimmune_disease = ifelse(comorbidity_autoimmune_disease == 'Yes', 1, 0),
               #comorbidity_other = ifelse(comorbidity_other == 'Yes', 1, 0))
-head(data)
+```
 
-### 1 = yes 
-### 2 = no 
+## Heatmap To assess Correlation
 
-?geom_tile()
+```{r}
+#head(data$stage). ### Previous Code  -- Jumbled all the stages 
+#data$stage <- factor(data$stage, levels = unique(data$stage))
 
-ggplot(data, aes(x, y, width = w)) + 
-  geom_tile(aes(fill = z), colour = 'grey50')
+desired_order <- c("Stage I", "Stage II", "Stage III", "Stage IV")
+data$stage <- factor(data$stage, levels = desired_order)
+```
 
-
-
-ggplot(data, aes(x = 'smoking_history', y = 'stage')) + 
-  geom_tile( colour = "grey50")
-
-cor(data$tumor_size_mm, data$survival_months)
-library(ggplot2)
-
-ggplot(data = data, aes(x = tumor_size_mm, y = survival_months, color = 'red') +
-  geom_point() +
-  labs(title = "Scatterplot of Tumor Size Vs Survival Months",
-       x = "Tumor Size",
-       y = "Survival Months")
-  ##  0.01220816
-  
-cor(data$survival_months, data$calcium_level) #-0.008128369
-cor(data$survival_months, data$blood_pressure_diastolic) #0.00483971
+```{r}
 
 
-
-
-ggplot(data, aes(x = 'stage', y = 'comorbidity_diabetes ', fill = survival_months)) + 
-  geom_tile(color = "black") +
-  geom_text(aes(label = survival_months), color = "white", size=4) +
-  coord_fixed()
-
-
-ggplot(data, aes(x = 'stage', y = 'comorbidity_hypertension ', fill = survival_months)) + 
-  geom_tile(color = "black") +
-  geom_text(aes(label = survival_months), color = "white", size=4) +
-  coord_fixed()
-
-ggplot(data, aes(x = 'stage', y = 'insurance_type', fill = survival_months)) + 
-  geom_tile(color = "black") +
-  geom_text(aes(label = survival_months), color = "white", size=4) +
-  coord_fixed()
-
-
-ggplot(df, aes(x = x, y = y, fill = value)) +
-  geom_tile(color = "black") +
-  geom_text(aes(label = value), color = "white", size = 4) +
-  coord_fixed()
-
-
-data$survival_months
-
-exploratory_data = data 
-
-head(exploratory_data)
-
-shorted
-
-data$stage <- factor(data$stage, levels = unique(data$stage))
+#data$stage <- factor(data$stage, levels = unique(data$stage))
 
 data$comorbidity_diabetes <- factor(data$comorbidity_diabetes, levels = unique(data$comorbidity_diabetes))
 
 
 ggplot(data, aes(x = stage, y = comorbidity_diabetes, fill = survival_months)) + 
-  geom_tile(color = "black", width = 0.9, height = 0.9) +
-  
+  geom_tile(color = "black", width = 1, height = 1) +
   coord_fixed() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels if needed
+```
 
-#geom_text(aes(label = survival_months), color = "white", size = 4) +
+```{r}
 
-desired_order <- c("stage 1", "stage 2", "stage 3", "stage 4")
+```
+
+```{r}
+
+#data$stage <- factor(data$stage, levels = unique(data$stage))
+
+data$comorbidity_hypertension <- factor(data$comorbidity_diabetes, levels = unique(data$comorbidity_hypertension))
 
 
+ggplot(data, aes(x = stage, y = comorbidity_hypertension, fill = survival_months)) + 
+  geom_tile(color = "black", width = 1, height = 1) +
+  coord_fixed() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels if needed
+```
 
-data$stage <- factor(data$stage, levels = desired_order)
-data$insurance_type <- factor(data$insurance_type, levels = unique(data$insurance_type))
+```{r}
+
+insurance_desired_levels = c("Other", "Private", "Medicare", "Medicaid")
+
+data$insurance_type <- factor(data$insurance_type, levels = insurance_desired_levels)
 
 
 ggplot(data, aes(x = stage, y = insurance_type, fill = survival_months)) + 
   geom_tile(color = "black", width = 1, height = 1) +
   coord_fixed() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
-desired_order <- c("Stage I", "Stage II", "Stage III", "Stage IV")
-
-data$stage <- factor(data$stage, levels = unique(data$stage), order(desired_order))
-
-head(data$stage)
+```
