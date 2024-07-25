@@ -138,3 +138,10 @@ for(i in 13:19) {
   counts <- table(data[, i])
   barplot(counts, main = colnames(data)[i])
 }
+
+data <- data %>% mutate(Survival=ifelse(Survival_Months>=60,2,ifelse(Survival_Months>=12,1,0)))
+data$Survival <- as.factor(data$Survival)
+ggplot(data,aes(x=Survival,y=Age,group=Survival)) + geom_boxplot() + labs(title = "Boxplot of Age by Survival Group",
+                                                               x = "Survival Group",
+                                                               y = "Age")
+ 
