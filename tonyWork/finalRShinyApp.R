@@ -1196,10 +1196,10 @@ theme(plot.title = element_text(hjust = 0.5))
   listToTrainWith <- reactive({
     if(input$submitPredict){
       
-      list <- setdiff(names(patientData()), c("Stage","Performance_Status","Smoking_Pack_Years","Tumor_Location","Survival","Patient_ID", "Survival_Months","Stage","Gender","Ethnicity","Smoking_History","Insurance_Type","Treatment"))
+      list <- setdiff(names(patientData()), c("Stage","Performance_Status","Smoking_Pack_Years","Tumor_Location","Survival","Patient_ID", "Survival_Months","Gender","Ethnicity","Smoking_History","Insurance_Type","Treatment"))
       
     } else{
-      list <- setdiff(names(data()), c("Stage","Performance_Status","Smoking_Pack_Years","Tumor_Location","Survival","Patient_ID", "Survival_Months","Stage","Gender","Ethnicity","Smoking_History","Insurance_Type","Treatment"))
+      list <- setdiff(names(data()), c("Stage","Performance_Status","Smoking_Pack_Years","Tumor_Location","Survival","Patient_ID", "Survival_Months","Gender","Ethnicity","Smoking_History","Insurance_Type","Treatment"))
       
     }
     list
