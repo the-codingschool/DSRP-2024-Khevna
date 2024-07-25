@@ -568,7 +568,7 @@ data <- read.csv(\"../data/lung_cancer_data.csv\")"
   })
   
   output$showTail <- renderTable({
-    head(dataSetConstant())
+    tail(dataSetConstant())
   })
   
   output$tailCode <- renderText({
