@@ -66,7 +66,7 @@ hist(data$Survival_Months)
 
 # Plot each numerical variable as a boxplot to see if it is just boxplot being normal or not
 
-par(mfrow = c(3, 7))  # 4 rows and 5 columns
+par(mfrow = c(3, 7))  # 3 rows and 7 columns
 
 
 for (i in 1:21) {
@@ -129,3 +129,12 @@ theme_minimal() +
 labs(title = "Boxplots of Numerical Variables",
      x = "Variable",
      y = "Value")
+
+ggplot(data,aes(x=Treatment,y=Survival_Months)) +
+  geom_boxplot()
+
+par(mfrow = c(2, 4))
+for(i in 13:19) {
+  counts <- table(data[, i])
+  barplot(counts, main = colnames(data)[i])
+}
