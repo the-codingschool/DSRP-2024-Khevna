@@ -12,6 +12,9 @@ library(paletteer)
 library(randomForest)
 library(shinyjs)
 library(ggcorrplot)
+library(utils)
+library(reshape2)
+library(gridExtra)
 
 set.seed(42)
 
@@ -351,10 +354,13 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                   plotOutput("showtSMPlot"),
                   
                   p("\n\n"),
-                  p("Now, how about we split the survival months into three categories: \n
-                    0 being dies within 1 year\n
-                    1 being dies between 1 and 5 years\n and \n
-                    2 being dies after 5 years.\n
+                  p("Now, how about we split the survival months into three categories:"),
+                  markdown("
+                    + 0: Death within 1 year
+                    + 1: Death within 5 years
+                    + 2: Death after 5 years
+                  "),
+                  p("
                     We can now compare this to age to see if there is any difference between these three major
                     groups using boxplots, which we couldn't do if we only had survival months.
                     "),
@@ -989,7 +995,7 @@ for(i in 13:19) {
     data$Survival <- as.factor(data$Survival)
     ggplot(data,aes(x=Survival,y=Age,group=Survival)) + geom_boxplot() + labs(title = "Boxplot of Age by Survival Group",
                                                                               x = "Survival Group",
-                                                                              y = "Age")
+                                                                              y = "Age") + theme(plot.title = element_text(hjust = 0.5))
     
   })
   
@@ -998,7 +1004,8 @@ for(i in 13:19) {
 data$Survival <- as.factor(data$Survival)
 ggplot(data,aes(x=Survival,y=Age,group=Survival)) + geom_boxplot() + labs(title = \"Boxplot of Age by Survival Group\",
                                                                x = \"Survival Group\",
-                                                               y = \"Age\")
+                                                               y = \"Age\") +
+theme(plot.title = element_text(hjust = 0.5))
 "
   })
   
