@@ -163,7 +163,7 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                   tableOutput("showMean"),
                   p("Median:"),
                   tableOutput("showMedian"),
-                  p("Mode"),
+                  p("Sum"),
                   tableOutput("showSum"),
                   
                   p("\n\n"),
@@ -182,7 +182,8 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                   tableOutput("showSd"),
                   
                   p("\n\n"),
-                  p("Now that we have all of these statistics, lets see if the numerical values have any correlation with each other"),
+                  p("Now that we have all of these statistics, lets see if the numerical
+                    values have any correlation with each other. (Please fullscreen for best viewing experience)"),
                   
                   actionButton("show_corr_code", "Show Code",class = "btn btn-primary"),
                   hidden(
@@ -195,7 +196,7 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                   
                   p("\n\n"),
                   p("Hmm, that's strange. Let's switch to something else for now: creating boxplots for each numerical value. 
-                    This way, we can see if there are patterns such as weighted distribution"),
+                    This way, we can see if there are patterns such as weighted distribution. (Please fullscreen for best viewing experience)"),
                   
                   actionButton("show_numBoxPlot_code", "Show Code",class = "btn btn-primary"),
                   hidden(
@@ -204,9 +205,170 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                     )
                   ),
                   p("\n"),
-                  plotOutput("showNumBoxPlot")
+                  plotOutput("showNumBoxPlot"),
                   
-              )))
+                  p("\n\n"),
+                  p("This time, we saw an even distribution. Let's confirm this with a series of histograms
+                    (Please fullscreen for best viewing experience)"),
+                  
+                  actionButton("show_numHistPlot_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "numHistPlot_code_snippet",
+                        verbatimTextOutput("numHistPlotCode")
+                    )
+                  ),
+                  p("\n"),
+                  plotOutput("showNumHistPlot"),
+                  
+                  p("\n\n"),
+                  p("You can see that almost everything is evenly distributed. Some of them have extra or half on the ends."))
+                  ),
+                  tabPanel("Combined Exploration",
+                           h2("Combined Exploration"),
+                           p("Now lets explore how the categorical and numerical variables interact.
+                             First, we can check how ethnicity impacts everything else"),
+                  actionButton("show_BoxEthPlot_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "boxEthPlot_code_snippet",
+                        verbatimTextOutput("boxEthPlotCode")
+                    )
+                  ),
+                  p("\n"),
+                  plotOutput("showBoxEthPlot"),
+                  p("\n\n"),
+                  p("Again, it is very evenly distributed even though it is split by ethnicity. All the ethnicities
+                    have almost the same boxplot as well."),
+                  p("We can also create
+                    a scatterplot of tumor size vs age. There should be some kind of pattern, according
+                    to online source. Maybe there would even be a pattern that we can see by coloring with ethnicity"),
+                  actionButton("show_EthAgeSizePlot_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "EthAgeSizePlot_code_snippet",
+                        verbatimTextOutput("EthAgeSizePlotCode")
+                    )
+                  ),
+                  p("\n"),
+                  plotOutput("showEthAgeSizePlot"),
+                  
+                  p("\n\n"),
+                  p("Yep. Nothing, again. It seems like it is all evenly distributed and that the ethnicity
+                    has no effect either, just as we found with the boxplots. Let's move onto something else."),
+                  h3("Analyzing Stages"),
+                  p("It is well known that there are four stages when it comes to cancer, with Stage I
+                    being the least severe and Stage IV being the most severe."),
+                  p("Thus, let's first comapare the months survived for the cancer patients grouped
+                    by their stage of cancer."),
+                  actionButton("show_BoxStSMPlot_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "boxStSMPlot_code_snippet",
+                        verbatimTextOutput("boxStSMPlotCode")
+                    )
+                  ),
+                  p("\n"),
+                  plotOutput("showBoxStSMPlot"),
+                  
+                  p("\n\n"),
+                  p("Again, we get an even distribution split evenly among the four stages. This is
+                    contrary to other research in the field and overwhelming trends in the real world."),
+                  p("Let's give it the benefit of the doubt. It is often observed that 
+                  glucose levels may increase as the cancer progresses to more 
+                  advanced stages. This could be due to increased metabolic demands
+                  of tumor cells, which often exhibit higher glucose uptake (known as the Warburg effect).
+                  Thus, let's compare the stages with the glucose levels."),
+                  actionButton("show_BoxStGlPlot_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "boxStGlPlot_code_snippet",
+                        verbatimTextOutput("boxStGlPlotCode")
+                    )
+                  ),
+                  p("\n"),
+                  plotOutput("showBoxStGlPlot"),
+                  
+                  p("\n\n"),
+                  p("Now that we know that the glucose levels are evenly distributed, let's look at every other
+                  numerical value as well"),
+                  actionButton("show_BoxStGridPlot_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "boxStGridPlot_code_snippet",
+                        verbatimTextOutput("boxStGridPlotCode")
+                    )
+                  ),
+                  p("\n"),
+                  plotOutput("showBoxStGridPlot"),
+                  
+                  p("\n\n"),
+                  p("It surely is a trend in this dataset to have everything evenly distributed."),
+                  p("Maybe it has something to do with comorbidity. Maybe if we graph some boxplots
+                    along with stage, we can see some effect in survival months"),
+                  actionButton("show_BoxStCoGridPlot_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "boxStCoGridPlot_code_snippet",
+                        verbatimTextOutput("boxStCoGridPlotCode")
+                    )
+                  ),
+                  p("\n"),
+                  plotOutput("showBoxStCoGridPlot"),
+                  
+                  p("\n\n"),
+                  p("Wow, they are almost all the exact same. Maybe it has something to deal
+                    with the number of people with each comorobidity disease. Let's plot
+                    this real quick."),
+                  actionButton("show_BarCoGridPlot_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "barCoGridPlot_code_snippet",
+                        verbatimTextOutput("barCoGridPlotCode")
+                    )
+                  ),
+                  p("\n"),
+                  plotOutput("showBarCoGridPlot"),
+                  
+                  p("\n\n"),
+                  p("It wasn't that, but this gives us some important information. Even the comorbidity
+                    is evenly distributed")),
+                  tabPanel("Death and Age",
+                  
+                  h2("Death and Age"),
+                  p("Lung cancer treatment encompasses several methods, each tailored to the specific
+                    needs of the patient and the stage of the cancer. Chemotherapy involves using
+                    powerful drugs to kill rapidly growing cancer cells, and it can be used before
+                    or after surgery, or as a primary treatment for advanced cancer. Radiation therapy 
+                    uses high-energy rays to target and destroy cancer cells, either externally or 
+                    internally, and can shrink tumors or eliminate remaining cancer cells post-surgery. 
+                    Surgery involves the physical removal of cancerous tissue and is often utilized in
+                    early-stage lung cancer. Additionally, targeted therapy focuses on the molecular changes
+                    in cancer cells, offering a treatment that interferes with specific proteins or genes
+                    promoting cancer growth. Each of these treatments has its own set of benefits and side
+                    effects, and the choice of treatment depends on various factors, including the type 
+                    and stage of lung cancer, and the overall health of the patient."),
+                  p("Let us first explore how each treatment type affects how long the patient survives"),
+                  actionButton("show_tSMPlot_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "tSMPlot_code_snippet",
+                        verbatimTextOutput("tSMPlotCode")
+                    )
+                  ),
+                  p("\n"),
+                  plotOutput("showtSMPlot"),
+                  
+                  p("\n\n"),
+                  p("Now, how about we split the survival months into three categories: \n
+                    0 being dies within 1 year\n
+                    1 being dies between 1 and 5 years\n and \n
+                    2 being dies after 5 years.\n
+                    We can now compare this to age to see if there is any difference between these three major
+                    groups using boxplots, which we couldn't do if we only had survival months.
+                    "),
+                  actionButton("show_ASGPlot_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "ASGPlot_code_snippet",
+                        verbatimTextOutput("ASGPlotCode")
+                    )
+                  ),
+                  p("\n"),
+                  plotOutput("showASGPlot")
+                  
+                  )
+              )
          ),
          navbarMenu("Custom Data",
               tabPanel("Import dataset",
@@ -568,6 +730,283 @@ ggcorrplot(correlation_matrix)"
     toggle(id="numBoxPlot_code_snippet")
   })
   
+  output$showNumHistPlot <- renderPlot({
+    par(mfrow = c(3, 7))
+    for (i in 1:21) {
+      hist(numericalData[, i], main = colnames(numericalData)[i], col = paletteer_d("RColorBrewer::Pastel2"))
+    }
+    
+  })
+  
+  output$numHistPlotCode <- renderText({
+    "par(mfrow = c(3, 7))
+    for (i in 1:21) {
+  hist(numericalData[, i], main = colnames(numericalData)[i], col = paletteer_d(\"RColorBrewer::Pastel2\"))
+}"
+  })
+  
+  observeEvent(input$show_numHistPlot_code, {
+    toggle(id="numHistPlot_code_snippet")
+  })
+  
+  
+  numericalDataEthnicity <- reactive({
+    df <- select(dataSetConstant(),c("Ethnicity","Age","Tumor_Size_mm","Survival_Months","Blood_Pressure_Systolic","Blood_Pressure_Diastolic",
+                                     "Blood_Pressure_Pulse","Hemoglobin_Level","White_Blood_Cell_Count","Platelet_Count",
+                                     "Albumin_Level","Alkaline_Phosphatase_Level","Alanine_Aminotransferase_Level",
+                                     "Aspartate_Aminotransferase_Level","Creatinine_Level","LDH_Level","Calcium_Level",
+                                     "Phosphorus_Level","Glucose_Level","Potassium_Level","Sodium_Level"))
+    return(df)
+    
+  }) 
+  
+  output$showBoxEthPlot <- renderPlot({
+    par(mfrow = c(3, 7))
+
+    longData <- gather(numericalDataEthnicity(), key = "Variable", value = "Value", -Ethnicity)
+    
+    # Create boxplots
+    ggplot(longData, aes(x = Ethnicity, y = Value)) +
+      geom_boxplot() +
+      facet_wrap(~Variable, scales = "free_y") +
+      theme_bw() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+      labs(title = "Boxplots of Variables by Ethnicity",
+           x = "Ethnicity",
+           y = "Value") +
+      theme(plot.title = element_text(hjust = 0.5))
+    
+  })
+  
+  output$boxEthPlotCode <- renderText({
+    "numericalDataEthnicity = select(data,c(\"Ethnicity\",\"Age\",\"Tumor_Size_mm\",\"Survival_Months\",\"Blood_Pressure_Systolic\",\"Blood_Pressure_Diastolic\",
+                                       \"Blood_Pressure_Pulse\",\"Hemoglobin_Level\",\"White_Blood_Cell_Count\",\"Platelet_Count\",
+                                       \"Albumin_Level\",\"Alkaline_Phosphatase_Level\",\"Alanine_Aminotransferase_Level\",
+                                       \"Aspartate_Aminotransferase_Level\",\"Creatinine_Level\",\"LDH_Level\",\"Calcium_Level\",
+                                       \"Phosphorus_Level\",\"Glucose_Level\",\"Potassium_Level\",\"Sodium_Level\"))
+
+longData <- gather(numericalDataEthnicity, key = \"Variable\", value = \"Value\", -Ethnicity)
+
+# Create boxplots
+ggplot(longData, aes(x = Ethnicity, y = Value)) +
+  geom_boxplot() +
+  facet_wrap(~Variable, scales = \"free_y\") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = \"Boxplots of Variables by Ethnicity\",
+       x = \"Ethnicity\",
+       y = \"Value\") +
+  theme(plot.title = element_text(hjust = 0.5))"
+  })
+  
+  observeEvent(input$show_BoxEthPlot_code, {
+    toggle(id="boxEthPlot_code_snippet")
+  })
+  
+  
+  
+  output$showEthAgeSizePlot <- renderPlot({
+    par(mfrow = c(1, 1))
+    ggplot(numericalDataEthnicity(), aes(x = Age, y = Tumor_Size_mm, color = Ethnicity)) +
+      geom_point() +
+      theme_bw() +
+      labs(title = paste("Scatter Plot of Age vs Tumor Size Colored by Ethnicity"),
+           x = "Age",
+           y = "Tumor_Size_mm") +
+      theme(plot.title = element_text(hjust = 0.5))
+    
+  })
+  
+  output$EthAgeSizePlotCode <- renderText({
+    "par(mfrow = c(1, 1))
+    ggplot(numericalDataEthnicity, aes(x = Age, y = Tumor_Size_mm, color = Ethnicity)) +
+  geom_point() +
+  theme_bw() +
+  labs(title = paste(\"Scatter Plot of Age vs Tumor Size Colored by Ethnicity\"),
+       x = \"Age\",
+       y = \"Tumor_Size_mm\") +
+  theme(plot.title = element_text(hjust = 0.5))"
+  })
+  
+  observeEvent(input$show_EthAgeSizePlot_code, {
+    toggle(id="EthAgeSizePlot_code_snippet")
+  })
+  
+  numericalDataStage <- reactive({
+    df <- select(dataSetConstant(),c("Stage","Tumor_Size_mm","Survival_Months","Blood_Pressure_Systolic","Blood_Pressure_Diastolic",
+                        "Blood_Pressure_Pulse","Hemoglobin_Level","White_Blood_Cell_Count","Platelet_Count",
+                        "Albumin_Level","Alkaline_Phosphatase_Level","Alanine_Aminotransferase_Level",
+                        "Aspartate_Aminotransferase_Level","Creatinine_Level","LDH_Level","Calcium_Level",
+                        "Phosphorus_Level","Glucose_Level","Potassium_Level","Sodium_Level"))
+    return(df)
+    
+  }) 
+  
+  output$showBoxStSMPlot <- renderPlot({
+    par(mfrow = c(1, 1))
+    ggplot(numericalDataStage(),aes(x=Stage,y=Survival_Months)) + geom_boxplot() + 
+    labs(title="Boxplots of Survival Months vs Stage") +
+      theme(plot.title = element_text(hjust = 0.5))
+  })
+  
+  output$boxStSMPlotCode <- renderText({
+    "par(mfrow = c(1, 1))
+    numericalDataStage = select(data,c(\"Stage\",\"Tumor_Size_mm\",\"Survival_Months\",\"Blood_Pressure_Systolic\",\"Blood_Pressure_Diastolic\",
+                                   \"Blood_Pressure_Pulse\",\"Hemoglobin_Level\",\"White_Blood_Cell_Count\",\"Platelet_Count\",
+                                   \"Albumin_Level\",\"Alkaline_Phosphatase_Level\",\"Alanine_Aminotransferase_Level\",
+                                   \"Aspartate_Aminotransferase_Level\",\"Creatinine_Level\",\"LDH_Level\",\"Calcium_Level\",
+                                   \"Phosphorus_Level\",\"Glucose_Level\",\"Potassium_Level\",\"Sodium_Level\"))
+
+
+ggplot(numericalDataStage,aes(x=Stage,y=Survival_Months)) + geom_boxplot() + 
+labs(title=\"Boxplots of Survival Months vs Stage\") +
+      theme(plot.title = element_text(hjust = 0.5))"
+  })
+  
+  observeEvent(input$show_BoxStSMPlot_code, {
+    toggle(id="boxStSMPlot_code_snippet")
+  })
+  
+  output$showBoxStGlPlot <- renderPlot({
+    par(mfrow = c(1, 1))
+    ggplot(numericalDataStage(),aes(x=Stage,y=Glucose_Level)) + geom_boxplot() + 
+      labs(title="Boxplots of Glucose Level vs Stage")+
+      theme(plot.title = element_text(hjust = 0.5))
+  })
+  
+  output$boxStGlPlotCode <- renderText({
+    "par(mfrow = c(1, 1))
+ggplot(numericalDataStage,aes(x=Stage,y=Glucose_Level)) + geom_boxplot() + 
+labs(title=\"Boxplots of Glucose Level vs Stage\") +
+    theme(plot.title = element_text(hjust = 0.5))"
+  })
+  
+  observeEvent(input$show_BoxStGlPlot_code, {
+    toggle(id="boxStGlPlot_code_snippet")
+  })
+  
+  output$showBoxStGridPlot <- renderPlot({
+    long_data <- melt(dataSetConstant(), variable.name = "Variable", value.name = "Value")
+    
+    ggplot(long_data, aes(x = Stage, y = Value)) +
+      geom_boxplot() +
+      facet_wrap(~ Variable, scales = "free_y", ncol = 5) +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 90, hjust = 1),plot.title = element_text(hjust = 0.5)) +
+      labs(title = "Boxplots of Numerical Variables vs Stage",
+           x = "Stage",
+           y = "Numerical Variable Value") 
+  })
+  
+  output$boxStGridPlotCode <- renderText({
+    "long_data <- melt(data, variable.name = \"Variable\", value.name = \"Value\")
+
+ggplot(long_data, aes(x = Stage, y = Value)) +
+  geom_boxplot() +
+  facet_wrap(~ Variable, scales = \"free_y\", ncol = 5) +
+theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),plot.title = element_text(hjust = 0.5)) +
+labs(title = \"Boxplots of Numerical Variables vs Stage\",
+     x = \"Stage\",
+     y = \"Numerical Variable Value\") "
+  })
+  
+  observeEvent(input$show_BoxStGridPlot_code, {
+    toggle(id="boxStGridPlot_code_snippet")
+  })
+  
+  output$showBoxStCoGridPlot <- renderPlot({
+    df <- dataSetConstant()
+    plot_list <- list()
+    for(comorbidity in c("Comorbidity_Diabetes", "Comorbidity_Hypertension", "Comorbidity_Heart_Disease", "Comorbidity_Chronic_Lung_Disease", "Comorbidity_Kidney_Disease", "Comorbidity_Autoimmune_Disease", "Comorbidity_Other")){
+      p <- ggplot(df, aes_string(x = "Stage", y = "Survival_Months", fill = comorbidity)) +
+        geom_boxplot() +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1))
+      
+      plot_list[[comorbidity]] <- p
+    }
+    do.call(grid.arrange, c(plot_list, ncol = 2))
+  })
+  
+  output$boxStCoGridPlotCode <- renderText({
+    "plot_list <- list()
+for(comorbidity in c(\"Comorbidity_Diabetes\", \"Comorbidity_Hypertension\", \"Comorbidity_Heart_Disease\",
+\"Comorbidity_Chronic_Lung_Disease\", \"Comorbidity_Kidney_Disease\", \"Comorbidity_Autoimmune_Disease\",
+\"Comorbidity_Other\")){
+  p <- ggplot(data, aes_string(x = \"Stage\", y = \"Survival_Months\", fill = comorbidity)) +
+    geom_boxplot() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  plot_list[[comorbidity]] <- p
+}
+do.call(grid.arrange, c(plot_list, ncol = 2))"
+  })
+  
+  observeEvent(input$show_BoxStCoGridPlot_code, {
+    toggle(id="boxStCoGridPlot_code_snippet")
+  })
+  
+  output$showBarCoGridPlot <- renderPlot({
+    df <- dataSetConstant()
+    par(mfrow = c(2, 4))
+    for(i in 13:19) {
+      counts <- table(df[, i])
+      barplot(counts, main = colnames(df)[i])
+    }
+  })
+  
+  output$barCoGridPlotCode <- renderText({
+    "par(mfrow = c(2, 4))
+for(i in 13:19) {
+  counts <- table(data[, i])
+  barplot(counts, main = colnames(data)[i])
+}"
+  })
+  
+  observeEvent(input$show_BarCoGridPlot_code, {
+    toggle(id="barCoGridPlot_code_snippet")
+  })
+  
+  output$showtSMPlot <- renderPlot({
+    ggplot(dataSetConstant(),aes(x=Treatment,y=Survival_Months)) +
+      geom_boxplot() + labs(title="Boxplot of Survival Months vs Treatment") +
+      theme(plot.title = element_text(hjust = 0.5))
+  })
+  
+  output$tSMPlotCode <- renderText({
+    "ggplot(data,aes(x=Treatment,y=Survival_Months)) +
+  geom_boxplot() + labs(title=\"Boxplot of Survival Months vs Treatment\") +
+  theme(plot.title = element_text(hjust = 0.5))"
+  })
+  
+  observeEvent(input$show_tSMPlot_code, {
+    toggle(id="tSMPlot_code_snippet")
+  })
+  
+  output$showASGPlot <- renderPlot({
+    data <- dataSetConstant()
+    data <- data %>% mutate(Survival=ifelse(Survival_Months>=60,2,ifelse(Survival_Months>=12,1,0)))
+    data$Survival <- as.factor(data$Survival)
+    ggplot(data,aes(x=Survival,y=Age,group=Survival)) + geom_boxplot() + labs(title = "Boxplot of Age by Survival Group",
+                                                                              x = "Survival Group",
+                                                                              y = "Age")
+    
+  })
+  
+  output$ASGPlotCode <- renderText({
+    "data <- data %>% mutate(Survival=ifelse(Survival_Months>=60,2,ifelse(Survival_Months>=12,1,0)))
+data$Survival <- as.factor(data$Survival)
+ggplot(data,aes(x=Survival,y=Age,group=Survival)) + geom_boxplot() + labs(title = \"Boxplot of Age by Survival Group\",
+                                                               x = \"Survival Group\",
+                                                               y = \"Age\")
+"
+  })
+  
+  observeEvent(input$show_ASGPlot_code, {
+    toggle(id="ASGPlot_code_snippet")
+  })
+  
+  
   
   
   
@@ -857,6 +1296,8 @@ ggcorrplot(correlation_matrix)"
     if(new_pred==1){result = "Dies within 5 years"}
     paste("Prediction:", paste(result))
   })
+  
+  
   
   
 }
