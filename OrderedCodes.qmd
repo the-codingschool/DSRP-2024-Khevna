@@ -229,6 +229,12 @@ ggplot(data, aes(x = comorbidity_other, fill = comorbidity_other)) +
 
 ## Heatmap To assess Correlation
 
+## Correlation Between Comorbidities and Stage measured by Survival Months
+
+**Seven Types of Comorbidities**
+
+**1. Diabetes** **2. Hypertension** **3. Chronic Lung Disease** **4. Kidney Disease** **5. Heart Disease** **6. Autoimmune Disease** **7. Other**
+
 ```{r}
 #head(data$stage). ### Previous Code  -- Jumbled all the stages 
 #data$stage <- factor(data$stage, levels = unique(data$stage))
@@ -239,9 +245,7 @@ data$stage <- factor(data$stage, levels = desired_order)
 
 ```{r}
 
-
-#data$stage <- factor(data$stage, levels = unique(data$stage))
-
+## For Diabetes 
 data$comorbidity_diabetes <- factor(data$comorbidity_diabetes, levels = unique(data$comorbidity_diabetes))
 
 
@@ -249,16 +253,9 @@ ggplot(data, aes(x = stage, y = comorbidity_diabetes, fill = survival_months)) +
   geom_tile(color = "black", width = 1, height = 1) +
   coord_fixed() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels if needed
-```
 
-```{r}
 
-```
-
-```{r}
-
-#data$stage <- factor(data$stage, levels = unique(data$stage))
-
+## For Hypertension 
 data$comorbidity_hypertension <- factor(data$comorbidity_diabetes, levels = unique(data$comorbidity_hypertension))
 
 
@@ -266,7 +263,64 @@ ggplot(data, aes(x = stage, y = comorbidity_hypertension, fill = survival_months
   geom_tile(color = "black", width = 1, height = 1) +
   coord_fixed() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels if needed
+
+## For heart Diseases 
+
+names(data)
+
+data$comorbidity_heart_disease <- factor(data$comorbidity_heart_disease, levels = unique(data$comorbidity_heart_disease))
+
+ggplot(data, aes(x = stage, y = comorbidity_heart_disease, fill = survival_months)) + 
+  geom_tile(color = "black", width = 1, height = 1) +
+  coord_fixed() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+
+## For Chronic Lung Disease 
+
+data$comorbidity_chronic_lung_disease <- factor(data$comorbidity_chronic_lung_disease, levels = unique(data$comorbidity_chronic_lung_disease))
+
+ggplot(data, aes(x = stage, y = comorbidity_chronic_lung_disease, fill = survival_months)) +
+  geom_tile(color = "black", width = 1, height =1) +
+  coord_fixed() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+## For Kidney Disease 
+
+data$comorbidity_kidney_disease <- factor(data$comorbidity_kidney_disease, levels = unique(data$comorbidity_kidney_disease))
+
+ggplot(data, aes(x = stage, y = comorbidity_kidney_disease, fill = survival_months)) +
+  geom_tile(color = "black", width = 1, height =1) +
+  coord_fixed() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+## For autoimmune Disease 
+
+data$comorbidity_autoimmune_disease <- factor(data$comorbidity_autoimmune_disease, levels = unique(data$comorbidity_autoimmune_disease))
+
+ggplot(data, aes(x = stage, y = comorbidity_autoimmune_disease, fill = survival_months)) +
+  geom_tile(color = "black", width = 1, height =1) +
+  coord_fixed() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+## Other comorbidities 
+
+data$comorbidity_other <- factor(data$comorbidity_other, levels = unique(data$comorbidity_other))
+
+ggplot(data, aes(x = stage, y = comorbidity_other, fill = survival_months)) +
+  geom_tile(color = "black", width = 1, height =1) +
+  coord_fixed() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+```{r}
+names(data)
+```
+
+```{r}
+print('yes')
+```
+
+## Co-relation between Insurance Type and Stage Measured by Survival Months
 
 ```{r}
 
@@ -280,3 +334,175 @@ ggplot(data, aes(x = stage, y = insurance_type, fill = survival_months)) +
   coord_fixed() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+## Co-relation Between Family History and Stage Measured by Survival Months
+
+```{r}
+
+
+data$family_history <- factor(data$family_history, levels = unique(data$family_history))
+
+
+ggplot(data, aes(x = stage, y = family_history, fill = survival_months)) + 
+  geom_tile(color = "black", width = 1, height = 1) +
+  coord_fixed() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+## Co-relation between Gender and Stage Measured by Survival Months
+
+```{r}
+data$gender <- factor(data$gender, levels = unique(data$gender))
+
+
+ggplot(data, aes(x = stage, y = gender, fill = survival_months)) + 
+  geom_tile(color = "black", width = 1, height = 1) +
+  coord_fixed() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Co-relation between Smoking History and Stage Measured by Survival Months
+
+```{r}
+
+data$smoking_history <- factor(data$smoking_history, levels = unique(data$smoking_history))
+
+
+ggplot(data, aes(x = stage, y = smoking_history, fill = survival_months)) + 
+  geom_tile(color = "black", width = 1, height = 1) +
+  coord_fixed() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Co-relation between Ethnicity and Stage Measured by Survival Months
+
+```{r}
+
+data$ethnicity <- factor(data$ethnicity, levels = unique(data$ethnicity))
+
+
+ggplot(data, aes(x = stage, y = ethnicity, fill = survival_months)) + 
+  geom_tile(color = "black", width = 1, height = 1) +
+  coord_fixed() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+## Co-relation between Tumor Location and Stage Measured by Survival Months
+
+```{r}
+
+data$tumor_location <- factor(data$tumor_location, levels = unique(data$tumor_location))
+
+
+ggplot(data, aes(x = stage, y = tumor_location, fill = survival_months)) + 
+  geom_tile(color = "black", width = 1, height = 1) +
+  coord_fixed() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+## Heatmaps Show that patients are more likely to die in the first stage of lung cancer? What is the leading cause of death in stage one of lung cancer? What is the variable with the strongest influence? Why?
+
+## Separating dataset by Stage
+
+```{r}
+## In my research I have seen stage I is the wrost so why? 
+# Plan - I could filter data by stage and then plot survival months against the other numeric 
+#names(data)
+
+#cor(data$age, data$survival_months) # 0.002344657
+```
+
+```{r}
+
+stage_one_dataframe = filter(data, stage == 'Stage I')
+
+head(stage_one_dataframe)
+
+stage_two_dataframe = filter(data, stage == 'Stage II')
+
+head(stage_two_dataframe)
+
+stage_three_dataframe = filter(data, stage == 'Stage III')
+
+head(stage_three_dataframe)
+
+stage_four_dataframe = filter(data, stage == 'Stage IV')
+
+head(stage_four_dataframe)
+```
+
+## Working In Stage I Dataset
+
+## Creating a Boxplot of Survival Months to determine the lowest 50 percent of survival months
+
+**I will use this filtered lowest 50% to find correlations**
+
+```{r}
+
+boxplot(stage_one_dataframe$survival_months,  main = "Boxplot: Looking at the Range",
+        ylab='Scale', xlab='Survival Months')
+
+summary(stage_one_dataframe$survival_months) ## median survival months is 59 months 
+```
+
+## Filtering the Stage One Dataset By Survival Months \> 60
+
+```{r}
+stage_one_under_sixty_survival_months = filter(stage_one_dataframe, survival_months < 60)
+head(stage_one_under_sixty_survival_months)
+```
+
+## Starting by running Cor() - But need to do PCA
+
+```{r}
+names(stage_one_under_sixty_survival_months)
+```
+
+```{r}
+
+cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$tumor_size_mm)
+
+cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$blood_pressure_systolic)
+
+#cor(stage_one_under_sixty_survival_months$survival_months, #stage_one_under_sixty_survival_months$blood_pressure_diastolic)
+
+cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$blood_pressure_pulse)
+
+#cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$hemoglobin_level)
+
+#cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$white_blood_cell_count)
+
+#cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$platelet_count)
+
+cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$albumin_level)
+
+#cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$alkaline_phosphatase_level)
+
+#cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$aspartate_aminotransferase_level)
+
+#cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$creatinine_level)
+
+#cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$ldh_level)
+
+#cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$calcium_level)
+
+#cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$phosphorus_level)
+
+#cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$glucose_level)
+
+#cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$potassium_level)
+
+#cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$potassium_level)
+
+cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$sodium_level)
+
+cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$smoking_pack_years)
+
+cor(stage_one_under_sixty_survival_months$survival_months, stage_one_under_sixty_survival_months$age)
+
+```
+
+\[1\] 0.01622037 tumor_size_mm \[1\] 0.0410154 blood_pressure_systolic \[1\] 0.01761539 blood_pressure_pulse \[1\] 0.0223475 albumin_level \[1\] 0.01103778 sodium_level \[1\] 0.01857411 smoking_pack_years \[1\] 0.01683046 age
