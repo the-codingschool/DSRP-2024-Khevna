@@ -153,7 +153,7 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                   h2("Numerical Exploration"),
                   p("\n\n"),
                   p("Now, we have done some exploration with the categorical values. Let's move onto doing some things with the numerical values now. We can find
-                    statistics such as the mean, median, and sum."),
+                    statistics such as the mean, median, maximum, and minimum."),
                   
                   actionButton("show_MMS_code", "Show Code",class = "btn btn-primary"),
                   hidden(
@@ -166,8 +166,10 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                   tableOutput("showMean"),
                   p("Median:"),
                   tableOutput("showMedian"),
-                  p("Sum"),
-                  tableOutput("showSum"),
+                  p("Max:"),
+                  tableOutput("showMax"),
+                  p("Min:"),
+                  tableOutput("showMin"),
                   
                   p("\n\n"),
                   p("Let's also find the variances and standard deviations."),
@@ -671,8 +673,12 @@ sapply(categoricalData, function(col) {
   output$showMedian <- renderTable({
     t(sapply(MMSnumericalData(),median))
   })
-  output$showSum <- renderTable({
-    t(sapply(MMSnumericalData(),sum))
+  output$showMax <- renderTable({
+    t(sapply(MMSnumericalData(),max))
+  })
+  
+  output$showMin <- renderTable({
+    t(sapply(MMSnumericalData(),min))
   })
   
   output$MMSCode <- renderText({
@@ -684,7 +690,8 @@ sapply(categoricalData, function(col) {
 
 t(sapply(numericalData,mean))
 t(sapply(numericalData,median))
-t(sapply(numericalData,sum))"
+t(sapply(numericalData,max))
+t(sapply(numericalData,min))"
   })
   
   observeEvent(input$show_varsd_code, {
