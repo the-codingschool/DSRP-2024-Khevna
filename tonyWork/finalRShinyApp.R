@@ -146,7 +146,24 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                     )
                   ),
                   p("\n"),
-                  tableOutput("showUniqueNum"))),
+                  tableOutput("showUniqueNum"),
+                  
+                  
+                  p("\n\n"),
+                  p("Now that we have these values, let's find the distribution of the categorical variables"),
+                  
+                  actionButton("show_catDis_code", "Show Code",class = "btn btn-primary"),
+                  hidden(
+                    div(id = "catDis_code_snippet",
+                        verbatimTextOutput("catDisCode")
+                    )
+                  ),
+                  p("\n"),
+                  plotOutput("showCatDis")
+                  
+                  
+                  
+                  )),
                   
                   tabPanel("Numerical Exploration",
                   column(8,
@@ -465,8 +482,9 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                     selectInput("submitComorbidity_Kidney_Disease", "Select Comorbidity_Kidney_Disease:",choices=c("Yes","No"),"No"),
                     selectInput("submitComorbidity_Autoimmune_Disease", "Select Comorbidity_Autoimmune_Disease:",choices=c("Yes","No"),"No"),
                     selectInput("submitComorbidity_Other", "Select Comorbidity_Other:",choices=c("Yes","No"),"No"),
-                    selectInput("submitTreatment","Select Treatment",c("Surgery","Radiation Therapy", "Chemotherapy", "Targeted Therapy"))
-                ),
+                    selectInput("submitTreatment","Select Treatment",c("Surgery","Radiation Therapy", "Chemotherapy", "Targeted Therapy")),
+                    selectInput("submitPerformance_Status","Select Performance Status",c(1,2,3,4))
+                    ),
                 column(6,
                      numericInput("submitBlood_Pressure_Systolic", "Enter Blood_Pressure_Systolic:",NULL),
                      numericInput("submitBlood_Pressure_Diastolic", "Enter Blood_Pressure_Diastolic:",NULL),
@@ -652,6 +670,35 @@ sapply(categoricalData, function(col) {
   
   output$uniqueNumCode <- renderText({
     "t(sapply(categoricalData, function(col) length(unique(col))))"
+  })
+  
+  observeEvent(input$show_catDis_code, {
+    toggle(id="catDis_code_snippet")
+  })
+  
+  output$showCatDis <- renderPlot({
+    df <- dataSetConstant()
+    plot_list <- list()
+    for (var in c("Gender","Smoking_History","Tumor_Location","Stage", "Insurance_Type")) {
+      p <- ggplot(df, aes_string(x = var)) +
+        geom_bar() +
+        theme_minimal()
+      
+      plot_list[[var]] <- p
+    }
+    do.call(grid.arrange, c(plot_list, ncol = 2))
+  })
+  
+  output$catDisCode <- renderText({
+    "plot_list <- list()
+for (var in c(\"Gender\",\"Smoking_History\",\"Tumor_Location\",\"Stage\", \"Insurance_Type\")) {
+  p <- ggplot(data, aes_string(x = var)) +
+    geom_bar() +
+    theme_minimal()
+  
+  plot_list[[var]] <- p
+}
+do.call(grid.arrange, c(plot_list, ncol = 2))"
   })
   
   observeEvent(input$show_MMS_code, {
@@ -1101,6 +1148,7 @@ theme(plot.title = element_text(hjust = 0.5))
           Comorbidity_Kidney_Disease = input$submitComorbidity_Kidney_Disease,
           Comorbidity_Autoimmune_Disease = input$submitComorbidity_Autoimmune_Disease,
           Comorbidity_Other = input$submitComorbidity_Other,
+          Perforance_Status=input$submitPerformance_Status,
           Blood_Pressure_Systolic = input$submitBlood_Pressure_Systolic,
           Blood_Pressure_Diastolic = input$submitBlood_Pressure_Diastolic,
           Blood_Pressure_Pulse = input$submitBlood_Pressure_Pulse,
@@ -1203,10 +1251,10 @@ theme(plot.title = element_text(hjust = 0.5))
   listToTrainWith <- reactive({
     if(input$submitPredict){
       
-      list <- setdiff(names(patientData()), c("Stage","Performance_Status","Smoking_Pack_Years","Tumor_Location","Survival","Patient_ID", "Survival_Months","Gender","Ethnicity","Smoking_History","Insurance_Type","Treatment"))
+      list <- setdiff(names(patientData()), c("Stage","Smoking_Pack_Years","Tumor_Location","Survival","Patient_ID", "Survival_Months","Gender","Ethnicity","Smoking_History","Insurance_Type","Treatment"))
       
     } else{
-      list <- setdiff(names(data()), c("Stage","Performance_Status","Smoking_Pack_Years","Tumor_Location","Survival","Patient_ID", "Survival_Months","Gender","Ethnicity","Smoking_History","Insurance_Type","Treatment"))
+      list <- setdiff(names(data()), c("Stage","Smoking_Pack_Years","Tumor_Location","Survival","Patient_ID", "Survival_Months","Gender","Ethnicity","Smoking_History","Insurance_Type","Treatment"))
       
     }
     list

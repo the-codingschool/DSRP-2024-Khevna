@@ -5,6 +5,7 @@ library(dplyr)
 library(tidyr)
 library(reshape2)
 library(gridExtra)
+library(paletteer)
 
 # Get csv file
 # 1. Read the data from a CSV file and set working directory (This may be different for you)
@@ -147,7 +148,7 @@ ggplot(data,aes(x=Survival,y=Age,group=Survival)) + geom_boxplot() + labs(title 
                                                                y = "Age")
 
 plot_list <- list()
-for(comorbidity in c("Comorbidity_Diabetes", "Comorbidity_Hypertension", "Comorbidity_Heart_Disease", "Comorbidity_Chronic_Lung_Disease", "Comorbidity_Kidney_Disease", "Comorbidity_Autoimmune_Disease", "Comorbidity_Other")){
+for(comorbidity in c("Family_History","Comorbidity_Diabetes", "Comorbidity_Hypertension", "Comorbidity_Heart_Disease", "Comorbidity_Chronic_Lung_Disease", "Comorbidity_Kidney_Disease", "Comorbidity_Autoimmune_Disease", "Comorbidity_Other")){
   p <- ggplot(data, aes_string(x = "Stage", y = "Survival_Months", fill = comorbidity)) +
     geom_boxplot() +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
@@ -156,4 +157,12 @@ for(comorbidity in c("Comorbidity_Diabetes", "Comorbidity_Hypertension", "Comorb
 }
 do.call(grid.arrange, c(plot_list, ncol = 2))
 
- 
+plot_list <- list()
+for (var in c("Gender","Smoking_History","Tumor_Location","Stage", "Insurance_Type")) {
+  p <- ggplot(data, aes_string(x = var)) +
+    geom_bar() +
+    theme_minimal()
+  
+  plot_list[[var]] <- p
+}
+do.call(grid.arrange, c(plot_list, ncol = 2))
