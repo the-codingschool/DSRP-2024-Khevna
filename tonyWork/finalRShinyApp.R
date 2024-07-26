@@ -1148,7 +1148,7 @@ theme(plot.title = element_text(hjust = 0.5))
           Comorbidity_Kidney_Disease = input$submitComorbidity_Kidney_Disease,
           Comorbidity_Autoimmune_Disease = input$submitComorbidity_Autoimmune_Disease,
           Comorbidity_Other = input$submitComorbidity_Other,
-          Perforance_Status=input$submitPerformance_Status,
+          Performance_Status = input$submitPerformance_Status,
           Blood_Pressure_Systolic = input$submitBlood_Pressure_Systolic,
           Blood_Pressure_Diastolic = input$submitBlood_Pressure_Diastolic,
           Blood_Pressure_Pulse = input$submitBlood_Pressure_Pulse,
