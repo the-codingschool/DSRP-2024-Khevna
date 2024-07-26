@@ -166,3 +166,4 @@ for (var in c("Gender","Smoking_History","Tumor_Location","Stage", "Insurance_Ty
   plot_list[[var]] <- p
 }
 do.call(grid.arrange, c(plot_list, ncol = 2))
+
