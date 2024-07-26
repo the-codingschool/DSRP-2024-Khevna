@@ -30,7 +30,8 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
               h2("What I did"),
               h2("About Me")
          ),
-         tabPanel("Analysis",
+         navbarMenu("Analysis",
+         tabPanel("Lung Cancer (Deprecated)",
               navlistPanel(
                   tabPanel("Introductory Exploration", 
                   column(8,
@@ -400,9 +401,9 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                              a week doing this. We will receive another dataset for a different cancer, most likely breast cancer, that will have its analysis added to this RShiny app.")
                            )
               )
-         ),
-         navbarMenu("Custom Data",
-              tabPanel("Import dataset",
+         )),
+         navbarMenu("Custom Data (Deprecated)",
+              tabPanel("Import dataset (Deprecated)",
                   h2("Use your own dataset (Not Recommended)"),
                   p("Make sure your dataset has all the same columns as the default dataset!"),
                   p("If your dataset contains different variable names, please define them in the variable declaration tab"),
@@ -416,7 +417,7 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                       )
                   )
               ),
-              tabPanel("Declare variables",
+              tabPanel("Declare variables (Deprecated)",
                   h2("Declare your own variable names."),
                   p("Note that Patient_ID is not necessary"),
                   # Big chunk now
@@ -470,7 +471,9 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
          
          navbarMenu("Prediction",
              tabPanel("Input Patient Data",
-                h2("Input Patient Data"),
+                navlistPanel(
+                  tabPanel("Lung Cancer (Deprecated)",
+                h2("Input Patient Data (Lung Cancer)"),
                 p("Please answer as many as possible"),
                 column(6,
                     numericInput("submitAge", "Enter Age (Years):",NULL),
@@ -510,10 +513,51 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                      numericInput("submitPotassium_Level", "Enter Potassium_Level:",NULL),
                      numericInput("submitSodium_Level", "Enter Sodium_Level:",NULL)
                      
-                 )
+                 )),
+                tabPanel("Breast Cancer",
+                         h2("Input Patient Data (Breast Cancer)"),
+                         p("Please answer as many as possible"),
+                         column(6,
+                                numericInput("submitB_radius_mean", "Enter Mean Radius:", NULL),
+                                numericInput("submitB_texture_mean", "Enter Mean Texture:", NULL),
+                                numericInput("submitB_perimeter_mean", "Enter Mean Perimeter:", NULL),
+                                numericInput("submitB_area_mean", "Enter Mean Area:", NULL),
+                                numericInput("submitB_smoothness_mean", "Enter Mean Smoothness:", NULL),
+                                numericInput("submitB_compactness_mean", "Enter Mean Compactness:", NULL),
+                                numericInput("submitB_concavity_mean", "Enter Mean Concavity:", NULL),
+                                numericInput("submitB_concave_points_mean", "Enter Mean Concave Points:", NULL),
+                                numericInput("submitB_symmetry_mean", "Enter Mean Symmetry:", NULL),
+                                numericInput("submitB_fractal_dimension_mean", "Enter Mean Fractal Dimension:", NULL),
+                                numericInput("submitB_radius_se", "Enter SE Radius:", NULL),
+                                numericInput("submitB_texture_se", "Enter SE Texture:", NULL),
+                                numericInput("submitB_perimeter_se", "Enter SE Perimeter:", NULL),
+                                numericInput("submitB_area_se", "Enter SE Area:", NULL),
+                                numericInput("submitB_smoothness_se", "Enter SE Smoothness:", NULL)
+                                ),
+                         column(6,
+                                numericInput("submitB_compactness_se", "Enter SE Compactness:", NULL),
+                                numericInput("submitB_concavity_se", "Enter SE Concavity:", NULL),
+                                numericInput("submitB_concave_points_se", "Enter SE Concave Points:", NULL),
+                                numericInput("submitB_symmetry_se", "Enter SE Symmetry:", NULL),
+                                numericInput("submitB_fractal_dimension_se", "Enter SE Fractal Dimension:", NULL),
+                                numericInput("submitB_radius_worst", "Enter Worst Radius:", NULL),
+                                numericInput("submitB_texture_worst", "Enter Worst Texture:", NULL),
+                                numericInput("submitB_perimeter_worst", "Enter Worst Perimeter:", NULL),
+                                numericInput("submitB_area_worst", "Enter Worst Area:", NULL),
+                                numericInput("submitB_smoothness_worst", "Enter Worst Smoothness:", NULL),
+                                numericInput("submitB_compactness_worst", "Enter Worst Compactness:", NULL),
+                                numericInput("submitB_concavity_worst", "Enter Worst Concavity:", NULL),
+                                numericInput("submitB_concave_points_worst", "Enter Worst Concave Points:", NULL),
+                                numericInput("submitB_symmetry_worst", "Enter Worst Symmetry:", NULL),
+                                numericInput("submitB_fractal_dimension_worst", "Enter Worst Fractal Dimension:", NULL)
+                          )
+                         
+                         )
+                )
              ),
-             tabPanel("Results",
-                h2("Results"),
+             
+             tabPanel("Results (Lung Cancer)",
+                h2("Lung Cancer Results (Deprecated)"),
                 navlistPanel(
                   tabPanel(
                "KNN",
@@ -543,7 +587,43 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                       textOutput("rfAccuracy"),
                       checkboxInput("submitPredict","Predict with patient data? (Will only use provided variables to train)",FALSE),
                       textOutput("rfPrediction")
-             )))
+             ))),
+             
+             tabPanel("Results (Breast Cancer)",
+                      h2("Results (Breast Cancer)"),
+                      navlistPanel(
+                        tabPanel(
+                          "KNN",
+                          h2("K-Nearest Neighbors Prediction"),
+                          p("The algorithm was trained with the following final outcomes:"),
+                          markdown("
+                    + 0: Benign
+                    + 1: Malignant
+                 "),
+                          p("Confusion Matrix:"),
+                          tableOutput("knnBConfusionMatrix"),
+                          textOutput("knnBAccuracy"),
+                          checkboxInput("submitPredict","Predict with patient data? (Will only use provided variables to train)",FALSE),
+                          textOutput("knnBPrediction")
+                        ),
+                        
+                        tabPanel("Random Forest",
+                                 h2("Random Forest Prediction"),
+                                 p("The algorithm was trained with the following final outcomes:"),
+                                 markdown("
+                    + 0: Benign
+                    + 1: Malignant
+                 "),
+                                 p("Confusion Matrix:"),
+                                 tableOutput("rfBConfusionMatrix"),
+                                 textOutput("rfBAccuracy"),
+                                 checkboxInput("submitPredict","Predict with patient data? (Will only use provided variables to train)",FALSE),
+                                 textOutput("rfBPrediction")
+                        )
+                        
+                        ))
+             
+             
            
            
          )
@@ -1365,9 +1445,171 @@ theme(plot.title = element_text(hjust = 0.5))
     paste("Prediction:", paste(result))
   })
   
+  breastCancerData <- reactive({
+    setwd("C:/Users/Tony/OneDrive/Documents/tonyR/DSRP-2024-Khevna/tonyWork")
+    data <- read.csv("../data/breast_cancer_classification_data.csv")
+    data <- data %>% mutate(diagnosis = ifelse(diagnosis=="M",1,0))
+    
+    return(data)
+  })
+  
+  listToTrainWithB <- reactive({
+    if(input$submitPredict){
+      
+      list <- names(patientData())
+      
+    } else{
+      list <- setdiff(names(breastCancerData()), c("id","diagnosis","X"))
+      
+    }
+    
+  })
+  
+  knnBresult <- reactive({
+    set.seed(42)
+    dataset <- breastCancerData()
+    split <- sample.split(dataset$diagnosis,SplitRatio=0.8)
+    training <- subset(dataset,split==TRUE)
+    testing <- subset(dataset,split==FALSE)
+    
+    list1 <- listToTrainWithB()
+    
+    knn_model <- knn(train = training[,list1],
+                     test=testing[,list1],
+                     cl=training$diagnosis, k=5
+    )
+    pred <- knn_model
+    list(pred = pred, actual = testing$diagnosis, training = training)
+    
+  })
+  
+  output$knnBConfusionMatrix <- renderTable({
+    confusion_matrix <- table(Predicted = knnBresult()$pred, Actual = knnBresult()$actual)
+    confusion_matrix
+  })
+  
+  output$knnBAccuracy <- renderText({
+    confusion_matrix <- table(Predicted = knnBresult()$pred, Actual = knnBresult()$actual)
+    accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+    paste0("Accuracy: ", round(accuracy*100, 2), "%")
+  })
+  
+  output$knnBPrediction <- reactive({
+    set.seed(42)
+    if (!input$submitPredict) {
+      return(NULL)
+    }
+    pd <- patientDataB()[, listToTrainWithB()]
+    new_pred <- knn(train = knnBresult()$training[, listToTrainWithB()],
+                    test = pd,
+                    cl = knnBresult()$training$diagnosis, k = 5)
+    result <- "Benign"
+    if(new_pred==0){result = "Benign"}
+    if(new_pred==1){result = "Malignant"}
+    paste("Prediction:", paste(result))
+  })
+  
+  
+  randForestBResult <- reactive({
+    set.seed(42)
+    dataset <- breastCancerData()
+    split <- sample.split(dataset$diagnosis,SplitRatio=0.8)
+    training <- subset(dataset,split==TRUE)
+    testing <- subset(dataset,split==FALSE)
+    training$diagnosis <- as.factor(training$diagnosis)
+    testing$diagnosis <- as.factor(testing$diagnosis)
+    
+    list1 <- listToTrainWithB()
+    
+    rf_model <- randomForest(x = training[,list1],
+                             y=training$diagnosis, ntree=50
+    )
+    predictions <- predict(rf_model, newdata = testing[,list1])
+    
+    list(pred = rf_model, predictions = predictions, actual = testing$diagnosis, training = training)
+    
+  })
+  
+  output$rfBConfusionMatrix <- renderTable({
+    set.seed(42)
+    predictions <- randForestBResult()$predictions
+    actuals <- randForestBResult()$actual
+    
+    confusion_matrix <- table(Predicted = predictions, Actual = actuals)
+    confusion_matrix
+  })
+  
+  output$rfBAccuracy <- renderText({
+    set.seed(42)
+    predictions <- randForestBResult()$predictions
+    actuals <- randForestBResult()$actual
+    
+    confusion_matrix <- table(Predicted = predictions, Actual = actuals)
+    accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+    paste0("Accuracy: ", round(accuracy*100, 2), "%")
+  })
+  
+  output$rfBPrediction <- reactive({
+    set.seed(42)
+    if (!input$submitPredict) {
+      return(NULL)
+    }
+    pd <- patientDataB()[, listToTrainWithB()]
+    predictor = randForestBResult()$pred
+    new_pred <- predict(predictor, newdata = pd)
+    result <- "Benign"
+    if(new_pred==0){result = "Benign"}
+    if(new_pred==1){result = "Malignant"}
+    paste("Prediction:", paste(result))
+  })
+ 
+  patientDataB <- reactive ({
+    patientdf <- data.frame(
+      radius_mean = input$submitB_radius_mean,
+      texture_mean = input$submitB_texture_mean,
+      perimeter_mean = input$submitB_perimeter_mean,
+      area_mean = input$submitB_area_mean,
+      smoothness_mean = input$submitB_smoothness_mean,
+      compactness_mean = input$submitB_compactness_mean,
+      concavity_mean = input$submitB_concavity_mean,
+      concave_points_mean = input$submitB_concave_points_mean,
+      symmetry_mean = input$submitB_symmetry_mean,
+      fractal_dimension_mean = input$submitB_fractal_dimension_mean,
+      radius_se = input$submitB_radius_se,
+      texture_se = input$submitB_texture_se,
+      perimeter_se = input$submitB_perimeter_se,
+      area_se = input$submitB_area_se,
+      smoothness_se = input$submitB_smoothness_se,
+      compactness_se = input$submitB_compactness_se,
+      concavity_se = input$submitB_concavity_se,
+      concave_points_se = input$submitB_concave_points_se,
+      symmetry_se = input$submitB_symmetry_se,
+      fractal_dimension_se = input$submitB_fractal_dimension_se,
+      radius_worst = input$submitB_radius_worst,
+      texture_worst = input$submitB_texture_worst,
+      perimeter_worst = input$submitB_perimeter_worst,
+      area_worst = input$submitB_area_worst,
+      smoothness_worst = input$submitB_smoothness_worst,
+      compactness_worst = input$submitB_compactness_worst,
+      concavity_worst = input$submitB_concavity_worst,
+      concave_points_worst = input$submitB_concave_points_worst,
+      symmetry_worst = input$submitB_symmetry_worst,
+      fractal_dimension_worst = input$submitB_fractal_dimension_worst
+    )
+    
+    patientdf <- patientdf %>% select_if(~ !all(is.na(.)))
+    
+    return(patientdf)
+  })
   
   
   
+  
+  
+  
+  
+  
+   
 }
 
 shinyApp(ui=ui,server=server)
