@@ -1,0 +1,81 @@
+---
+title: "Breast Cancer Dataset"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+data = read.csv("/Users/labibawajihasiddiquei/Downloads/data.csv")
+
+head(data)
+
+library(titanic)
+library(dplyr)
+library(janitor)
+library(ggplot2)
+library(tidyr)
+```
+
+You can add options to executable code like this
+
+```{r}
+
+num_data = select(data, 3:31)
+
+head(num_data)
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+numericalData = select(data,c("radius_mean","texture_mean","perimeter_mean",
+                              "area_mean","smoothness_mean","compactness_mean",
+                              "concavity_mean","concave.points_mean","symmetry_mean",
+                              "fractal_dimension_mean","radius_se","texture_se","perimeter_se",
+                              "area_se","smoothness_se","compactness_se","concavity_se",
+                              "concave.points_se","symmetry_se","fractal_dimension_se",
+                              "radius_worst","texture_worst","perimeter_worst","area_worst",
+                              "smoothness_worst","compactness_worst","concavity_worst",
+                              "concave.points_worst","symmetry_worst","fractal_dimension_worst"))
+
+install.packages('ggcorrplot')
+
+library(ggcorrplot)
+?cor
+
+correlation_matrix <- cor(numericalData, use = "complete.obs")
+
+ggcorrplot(correlation_matrix)
+
+```
+
+```{r}
+library(ggcorrplot)
+?cor
+
+correlation_matrix <- cor(num_data, use = "everything")
+ggcorrplot(correlation_matrix) + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(angle = 90, hjust = 1, size = 6))
+
+?element_text()
+```
+
+```{r}
+# pairwise.complete.obs
+?model.matrix
+
+model.matrix(~0+., data=num_data) %>% 
+  cor(use="everything") %>% 
+  ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2) + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(angle = 90, hjust = 1, size = 6))
+```
+
+```{r}
+
+```
