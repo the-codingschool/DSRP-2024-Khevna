@@ -392,7 +392,13 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                   p("\n"),
                   plotOutput("showASGPlot")
                   
-                  )
+                  ),
+                  
+                  tabPanel("Conclusion",
+                           h1("Conclusion"),
+                           p("This dataset was not generated very well because it is evenly distributed across every single categorical and numerical variable. Very sad. I have wasted
+                             a week doing this. We will receive another dataset for a different cancer, most likely breast cancer, that will have its analysis added to this RShiny app.")
+                           )
               )
          ),
          navbarMenu("Custom Data",
