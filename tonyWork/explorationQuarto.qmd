@@ -1,0 +1,56 @@
+---
+title: "breastCancerExploration"
+author: "Tony Song"
+format: html
+editor: visual
+---
+
+## Breast Cancer Dataset
+
+Load necessary libraries
+
+```{r}
+library(utils)
+library(ggcorrplot)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(reshape2)
+library(gridExtra)
+library(paletteer)
+```
+
+Download data then upload to R.
+
+```{r}
+setwd("C:/Users/Tony/OneDrive/Documents/tonyR/DSRP-2024-Khevna/tonyWork")
+data <- read.csv("../data/breast_cancer_classification_data.csv")
+```
+
+Let's look at some of the elements in this dataset
+
+```{r}
+head(data)
+```
+
+Now, in order to manipulate the dataset well, we need to get the dimensions
+
+```{r}
+dim(data)
+```
+
+This shows that there are 569 rows and 33 columns. Now, we need to know what these column names are and what data type they are.
+
+```{r}
+str(data)
+```
+
+We can see that other than the diagnosis, all of the variables are numerical.
+
+First, let's explore a bit of our categorical variable: diagnosis. A diagnosis of M means that the cell is malignant while a diagnosis of B means that it is benign. We can plot this with a multitude of graphs
+
+```{r}
+ggplot(data,aes(x=diagnosis,fill=diagnosis)) + geom_bar() + scale_fill_paletteer_d("ggthemes::Tableau_10")
+
+ggplot(data,aes(x="",fill=diagnosis)) + geom_bar() + coord_polar(start=0,"y") + theme_void() + scale_fill_paletteer_d("ggthemes::Tableau_10")
+```
