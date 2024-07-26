@@ -9,7 +9,8 @@ editor: visual
 
 You should run the following R code to see the analysis and everything that I did.
 
-```{library(ggplot2)}
+```{r}
+library(ggplot2)
 library(dplyr)
 library(tidyverse)
 library(shiny)
