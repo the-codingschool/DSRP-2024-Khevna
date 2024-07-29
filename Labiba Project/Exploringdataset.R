@@ -373,11 +373,69 @@ for (col_name in names(data)) {
 }
 
 
+i = select(data,c("radius_mean","texture_mean","perimeter_mean",
+                  "area_mean","smoothness_mean","compactness_mean",
+                  "concavity_mean","concave.points_mean","symmetry_mean",
+                  "fractal_dimension_mean","radius_se","texture_se","perimeter_se",    "area_se","smoothness_se","compactness_se","concavity_se",
+                  "concave.points_se","symmetry_se","fractal_dimension_se",
+                  "radius_worst","texture_worst","perimeter_worst","area_worst",
+                  "smoothness_worst","compactness_worst","concavity_worst",
+                  "concave.points_worst","symmetry_worst","fractal_dimension_worst" ))
 
+for  in data %>%
+  boxplot(num_data,
+          main = "Boxplot: Checking for Outliers in worst", 
+          ylab='Scale',
+          las = 2 # Rotate x-axis labels for better readability
+  )
 
+#summary(data$radius_worst)
 
+par(mfrow = c(1, ncol(num_data)))
+invisible(lapply(1:ncol(num_data), function(i) boxplot(num_data[, i])))
 
+p <- ggplot(data = num_data, aes()) + geom_boxplot(aes(fill=Label)) + geom_jitter() + facet_wrap( ~ variable, scales="free") + xlab("x-axis") + ylab("y-axis") + ggtitle("Title") + guides(fill=guide_legend(title="Legend_Title"))
+p
 
+ggplot(num_data, aes(radius_se ~radius_mean)) +
+  geom_point(data = transform(num_data, class = NULL), colour = "grey85") +
+  geom_point() +
+  facet_wrap(vars(class))
+
+boxplot(radius_worst ~ ,
+        names = c("radius_worst"),
+        main = "Boxplot: Checking for Outliers in radius_worst", 
+        ylab='Scale',
+        las = 2 # Rotate x-axis labels for better readability
+)
+
+summary(data$radius_worst)
+
+Try using an ifelse() call inside of mutate()
+
+Something like mutate(dataset, variable = ifelse(variable > outlier_threshold, median(variable), variable)
+
+                      boxplot(radius_mean ~ fractal_dimension_worst, data,
+                              #names = c("fractal_dimension_se"),
+                              main = "Boxplot: Checking for Outliers in fractal_dimension_se", 
+                              ylab='Scale',
+                              las = 2 # Rotate x-axis labels for better readability
+                      )
+
+#numericalData = select(data,c("radius_mean","texture_mean","perimeter_mean",
+# "area_mean","smoothness_mean","compactness_mean",
+#  "concavity_mean","concave.points_mean","symmetry_mean",
+#   "fractal_dimension_mean","radius_se","texture_se","perimeter_se",
+#     "area_se","smoothness_se","compactness_se","concavity_se",
+#         "concave.points_se","symmetry_se","fractal_dimension_se",
+#          "radius_worst","texture_worst","perimeter_worst","area_worst",
+#           "smoothness_worst","compactness_worst","concavity_worst",
+#           "concave.points_worst","symmetry_worst","fractal_dimension_worst"                                ))
+
+#boxplot(radius_mean ~ fractal_dimension_worst, data = numericalData,
+#main = "Displacement by Gear",
+#xlab = "Gear",
+#ylab = "Displacement")
 
 
 
