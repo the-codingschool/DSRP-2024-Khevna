@@ -10,14 +10,26 @@ editor: visual
 Load necessary libraries
 
 ```{r}
-library(utils)
-library(ggcorrplot)
 library(ggplot2)
 library(dplyr)
-library(tidyr)
+library(tidyverse)
+library(shiny)
+library(shinythemes)
+library(tibble)
+library(vroom)
+library(fastDummies)
+library(caTools)
+library(class)
+library(paletteer)
+library(randomForest)
+library(shinyjs)
+library(ggcorrplot)
+library(utils)
 library(reshape2)
 library(gridExtra)
-library(paletteer)
+library(utils)
+library(mlbench)
+library(caret)
 ```
 
 Download data then upload to R.
@@ -53,4 +65,96 @@ First, let's explore a bit of our categorical variable: diagnosis. A diagnosis o
 ggplot(data,aes(x=diagnosis,fill=diagnosis)) + geom_bar() + scale_fill_paletteer_d("ggthemes::Tableau_10")
 
 ggplot(data,aes(x="",fill=diagnosis)) + geom_bar() + coord_polar(start=0,"y") + theme_void() + scale_fill_paletteer_d("ggthemes::Tableau_10")
+```
+
+First, let's set up the random forest ML model and run some predictions.
+
+```{r}
+set.seed(42)
+dataset <- data
+split <- sample.split(dataset$diagnosis,SplitRatio=0.8)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+training$diagnosis <- as.factor(training$diagnosis)
+testing$diagnosis <- as.factor(testing$diagnosis)
+
+list1 <- c("radius_mean","texture_mean","perimeter_mean",
+         "area_mean","smoothness_mean","compactness_mean",
+         "concavity_mean","concave.points_mean","symmetry_mean",
+         "fractal_dimension_mean","radius_se","texture_se","perimeter_se",
+         "area_se","smoothness_se","compactness_se","concavity_se",
+         "concave.points_se","symmetry_se","fractal_dimension_se",
+         "radius_worst","texture_worst","perimeter_worst","area_worst",
+         "smoothness_worst","compactness_worst","concavity_worst",
+         "concave.points_worst","symmetry_worst", "fractal_dimension_worst")
+
+rf_model <- randomForest(x = training[,list1],
+                         y=training$diagnosis, ntree=50
+)
+predictions <- predict(rf_model, newdata = testing[,list1])
+
+list(pred = rf_model, predictions = predictions, actual = testing$diagnosis, training = training)
+
+actuals <- testing$diagnosis
+
+confusion_matrix <- table(Predicted = predictions, Actual = actuals)
+
+
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+```
+
+Now, let's output our results
+
+```{r}
+confusion_matrix
+cat("Accuracy: ", round(accuracy*100, 2), "%")
+```
+
+Find highly correlated variables
+
+```{r}
+highlyCorrelated <- findCorrelation(cor(data[,3:32]), cutoff=0.75)
+print(highlyCorrelated)
+```
+
+Remove all but one from each group
+
+```{r}
+variables_to_keep <- c(1, 5, 7, 10, 13, 18) 
+variables_to_remove <- setdiff(highlyCorrelated, variables_to_keep)
+cleaned_data <- data[, -variables_to_remove]
+```
+
+Remove id and random variable at the end
+
+```{r}
+data <- data %>% select(-id)
+data <- data %>% select(-X)
+```
+
+Train Model for Feature Significance
+
+```{r}
+cleaned_data$diagnosis <- as.factor(cleaned_data$diagnosis)
+control <- trainControl(method="repeatedcv", number=10, repeats=3)
+model <- train(diagnosis~., data=cleaned_data, method="lvq", preProcess="scale", trControl=control)
+importance <- varImp(model, scale=FALSE)
+plot(importance)
+head(cleaned_data)
+```
+
+```{r}
+dataset <- cleaned_data
+split <- sample.split(dataset$diagnosis,SplitRatio=0.8)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+training$diagnosis <- as.factor(training$diagnosis)
+testing$diagnosis <- as.factor(testing$diagnosis)
+rf_model <- randomForest(x = training[,-1],
+                         y=training$diagnosis, ntree=50
+)
+
+importance <- varImp(rf_model, scale=FALSE)
+print(importance)
 ```
