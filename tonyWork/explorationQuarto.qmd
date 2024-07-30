@@ -10,6 +10,7 @@ editor: visual
 Load necessary libraries
 
 ```{r}
+library(psych)
 library(ggplot2)
 library(dplyr)
 library(tidyverse)
@@ -30,6 +31,8 @@ library(gridExtra)
 library(utils)
 library(mlbench)
 library(caret)
+library(ggbiplot)
+library(devtools)
 ```
 
 Download data then upload to R.
@@ -93,8 +96,6 @@ rf_model <- randomForest(x = training[,list1],
 )
 predictions <- predict(rf_model, newdata = testing[,list1])
 
-list(pred = rf_model, predictions = predictions, actual = testing$diagnosis, training = training)
-
 actuals <- testing$diagnosis
 
 confusion_matrix <- table(Predicted = predictions, Actual = actuals)
@@ -114,28 +115,28 @@ cat("Accuracy: ", round(accuracy*100, 2), "%")
 Find highly correlated variables
 
 ```{r}
-highlyCorrelated <- findCorrelation(cor(data[,3:32]), cutoff=0.75)
+highlyCorrelated <- findCorrelation(cor(data[,3:32]), cutoff=0.5)
 print(highlyCorrelated)
 ```
 
 Remove all but one from each group
 
 ```{r}
-variables_to_keep <- c(1, 5, 7, 10, 13, 18) 
-variables_to_remove <- setdiff(highlyCorrelated, variables_to_keep)
-cleaned_data <- data[, -variables_to_remove]
+
+cleaned_data <- data[, -c(highlyCorrelated)]
 ```
 
 Remove id and random variable at the end
 
 ```{r}
-data <- data %>% select(-id)
-data <- data %>% select(-X)
+
+cleaned_data <- cleaned_data %>% select(-X)
 ```
 
 Train Model for Feature Significance
 
 ```{r}
+set.seed(42)
 cleaned_data$diagnosis <- as.factor(cleaned_data$diagnosis)
 control <- trainControl(method="repeatedcv", number=10, repeats=3)
 model <- train(diagnosis~., data=cleaned_data, method="lvq", preProcess="scale", trControl=control)
@@ -145,6 +146,7 @@ head(cleaned_data)
 ```
 
 ```{r}
+set.seed(42)
 dataset <- cleaned_data
 split <- sample.split(dataset$diagnosis,SplitRatio=0.8)
 training <- subset(dataset,split==TRUE)
@@ -158,3 +160,234 @@ rf_model <- randomForest(x = training[,-1],
 importance <- varImp(rf_model, scale=FALSE)
 print(importance)
 ```
+
+```{r}
+predictions <- predict(rf_model, newdata = testing[,-1])
+
+actuals <- testing$diagnosis
+
+confusion_matrix <- table(Predicted = predictions, Actual = actuals)
+
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+```
+
+```{r}
+confusion_matrix
+cat("Accuracy: ", round(accuracy*100, 2), "%")
+```
+
+```{r}
+head(data)
+data$diagnosis <- as.factor(data$diagnosis)
+control <- rfeControl(functions=rfFuncs, method="cv", number=10)
+results <- rfe(data[,3:32], data[,2], sizes=c(3:32), rfeControl=control)
+print(results)
+predictors(results)
+plot(results)
+```
+
+```{r}
+head(cleaned_data)
+```
+
+```{r}
+set.seed(42)
+dataset <- data[,c("diagnosis","area_worst", "concave.points_worst", "perimeter_worst", "radius_worst", "texture_worst")]
+
+split <- sample.split(dataset$diagnosis,SplitRatio=0.8)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+training$diagnosis <- as.factor(training$diagnosis)
+testing$diagnosis <- as.factor(testing$diagnosis)
+rf_model <- randomForest(x = training[,-1],
+                         y=training$diagnosis, ntree=50
+)
+
+predictions <- predict(rf_model, newdata = testing[,-1])
+
+actuals <- testing$diagnosis
+
+confusion_matrix <- table(Predicted = predictions, Actual = actuals)
+
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+confusion_matrix
+cat("Accuracy: ", round(accuracy*100, 2), "%")
+```
+
+```{r}
+head(cleaned_data)
+```
+
+```{r}
+control <- rfeControl(functions=rfFuncs, method="cv", number=10)
+results <- rfe(cleaned_data[,2:10], cleaned_data[,1], sizes=c(2:10), rfeControl=control)
+print(results)
+predictors(results)
+plot(results)
+```
+
+```{r}
+set.seed(42)
+dataset <- data[,c("diagnosis","perimeter_worst","concavity_worst","perimeter_se","texture_mean","symmetry_worst")]
+split <- sample.split(dataset$diagnosis,SplitRatio=0.8)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+training$diagnosis <- as.factor(training$diagnosis)
+testing$diagnosis <- as.factor(testing$diagnosis)
+rf_model <- randomForest(x = training[,-1],
+                         y=training$diagnosis, ntree=50
+)
+
+predictions <- predict(rf_model, newdata = testing[,-1])
+
+actuals <- testing$diagnosis
+
+confusion_matrix <- table(Predicted = predictions, Actual = actuals)
+
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+confusion_matrix
+cat("Accuracy: ", round(accuracy*100, 2), "%")
+```
+
+```{r}
+set.seed(42)
+dataset <- data[,c("diagnosis","area_worst", "concave.points_worst", "perimeter_worst", "radius_worst", "texture_worst")]
+dataset$diagnosis <- as.factor(dataset$diagnosis)
+split <- sample.split(dataset$diagnosis,SplitRatio=0.8)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+print(training)
+knn_model <- knn(train = training[,-1], test=testing[,-1],cl=training$diagnosis, k=5)
+
+actuals <- testing$diagnosis
+
+confusion_matrix <- table(Predicted = knn_model, Actual = actuals)
+
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+confusion_matrix
+cat("Accuracy: ", round(accuracy*100, 2), "%")
+```
+
+We can see that knn works better with the cleaned data rfe
+
+```{r}
+set.seed(42)
+dataset <- data[,c("diagnosis","perimeter_worst","concavity_worst","perimeter_se","texture_mean","symmetry_worst")]
+dataset$diagnosis <- as.factor(dataset$diagnosis)
+split <- sample.split(dataset$diagnosis,SplitRatio=0.8)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+print(training)
+knn_model <- knn(train = training[,-1], test=testing[,-1],cl=training$diagnosis, k=5)
+
+actuals <- testing$diagnosis
+
+confusion_matrix <- table(Predicted = knn_model, Actual = actuals)
+
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+confusion_matrix
+cat("Accuracy: ", round(accuracy*100, 2), "%")
+```
+
+Conduct PCA
+
+```{r}
+dataset <- select(data,-c(1,33))
+split <- sample.split(dataset$diagnosis,SplitRatio=0.8)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+head(training)
+results <- prcomp(training[,-1],center=TRUE,scale.=TRUE)
+summary(results)
+
+pairs.panels(results$x,
+             gap=0,
+             bg = c("red", "yellow")[training$diagnosis],
+             pch=21)
+
+results$scale
+```
+
+```{r}
+ggbiplot(results,
+              obs.scale = 1,
+              var.scale = 1,
+              groups = training$diagnosis,
+              ellipse = TRUE,
+              circle = TRUE,
+              ellipse.prob = 0.68) + scale_color_discrete(name = '') +theme(legend.direction = 'horizontal',legend.position = 'top')
+```
+
+```{r}
+head(cleaned_data)
+```
+
+```{r}
+dataset <- cleaned_data
+split <- sample.split(dataset$diagnosis,SplitRatio=0.8)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+head(training)
+results <- prcomp(training[,-1],center=TRUE,scale.=TRUE)
+summary(results)
+
+pairs.panels(results$x,
+             gap=0,
+             bg = c("red", "yellow")[training$diagnosis],
+             pch=21)
+
+results$scale
+```
+
+```{r}
+ggbiplot(results,
+              obs.scale = 1,
+              var.scale = 1,
+              groups = training$diagnosis,
+              ellipse = TRUE,
+              circle = TRUE,
+              ellipse.prob = 0.68) + scale_color_discrete(name = '') +theme(legend.direction = 'horizontal',legend.position = 'top')
+```
+
+```{r}
+trg <- predict(results, training)
+trg <- data.frame(trg, training[1])
+tst <- predict(results, testing)
+tst <- data.frame(tst, testing[1])
+trg$diagnosis <- as.factor(trg$diagnosis)
+library(nnet)
+trg$diagnosis <- relevel(trg$diagnosis, ref = "M")
+mymodel <- multinom(diagnosis~PC1+PC2, data = trg)
+summary(mymodel)
+```
+
+```{r}
+p <- predict(mymodel, trg)
+tab <- table(p, trg$diagnosis)
+tab
+```
+
+```{r}
+dataset <- data[,c(-1,-2,-33)]
+dataset <- scale(dataset)
+datasetPCA <- princomp(dataset)
+summary(datasetPCA)
+datasetPCA$loadings[, 1:2]
+```
+
+```{r}
+
+library("FactoMineR")
+library("corrr")
+library("factoextra")
+```
+
+```{r}
+fviz_pca_var(datasetPCA, col.var = "black")
+```
+
+Now that we have completed some basic exploration, let's move onto the next step: testing different models. I will lay out more information in the next quarto doc.
