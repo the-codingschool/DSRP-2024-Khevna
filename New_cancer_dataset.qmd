@@ -37,13 +37,14 @@ library(psych)
 ```
 
 You can add options to executable code like this
+
 ```{r}
 data = read.csv("/Users/labibawajihasiddiquei/Downloads/data.csv")
 head(data)
 ```
 
 ```{r}
-data = mutate(data, diagnosis = ifelse(diagnosis == 'M', 1, 0)) # M = 1, B = 0
+#data = mutate(data, diagnosis = ifelse(diagnosis == 'M', 1, 0)) # M = 1, B = 0
 ```
 
 ```{r}
@@ -51,14 +52,43 @@ cleaned_data = select(data, 2:32)
 head(cleaned_data)
 ```
 
-
-
 ```{r}
-print('This code cell is blank')
+cleaned_data = mutate(cleaned_data, radius_mean = ifelse(radius_mean > 21.9, median(radius_mean), radius_mean))
+cleaned_data = mutate(cleaned_data, texture_mean = ifelse(texture_mean > 30.245, median(texture_mean), texture_mean))
+cleaned_data = mutate(cleaned_data, perimeter_mean = ifelse(perimeter_mean > 147.495, median(perimeter_mean), perimeter_mean))
+cleaned_data = mutate(cleaned_data, area_mean = ifelse(area_mean > 1326.3, median(area_mean), area_mean))
+cleaned_data = mutate(cleaned_data, smoothness_mean = ifelse(smoothness_mean > .133695, median(smoothness_mean), smoothness_mean))
+cleaned_data = mutate(cleaned_data, smoothness_mean = ifelse(smoothness_mean < .057975, median(smoothness_mean), smoothness_mean))
+cleaned_data = mutate(cleaned_data, compactness_mean = ifelse(compactness_mean > .22862, median(compactness_mean), compactness_mean))
+cleaned_data = mutate(cleaned_data, concavity_mean = ifelse(concavity_mean > .28241, median(concavity_mean), concavity_mean))
+cleaned_data = mutate(cleaned_data, concave.points_mean = ifelse(concave.points_mean > .154535, median(concave.points_mean), concave.points_mean))
+cleaned_data = mutate(cleaned_data, symmetry_mean = ifelse(symmetry_mean > 0.2464, median(symmetry_mean), symmetry_mean))
+cleaned_data = mutate(cleaned_data, symmetry_mean = ifelse(symmetry_mean < 0.1112, median(symmetry_mean), symmetry_mean))
+cleaned_data = mutate(cleaned_data, fractal_dimension_mean = ifelse(fractal_dimension_mean > 0.07875, median(fractal_dimension_mean), fractal_dimension_mean))
+cleaned_data = mutate(cleaned_data, radius_se = ifelse(radius_se > 0.84865, median(radius_se), radius_se))
+cleaned_data = mutate(cleaned_data, texture_se = ifelse(texture_se > 2.43415, median(texture_se), texture_se))
+cleaned_data = mutate(cleaned_data, perimeter_se = ifelse(perimeter_se > 5.9835, median(perimeter_se), perimeter_se))
+cleaned_data = mutate(cleaned_data, area_se = ifelse(area_se > 86.2 , median(area_se), area_se))
+cleaned_data = mutate(cleaned_data, smoothness_se = ifelse(smoothness_se > 0.0126115 , median(smoothness_se), smoothness_se))
+cleaned_data = mutate(cleaned_data, compactness_se = ifelse(compactness_se > 0.061505 , median(compactness_se), compactness_se))
+cleaned_data = mutate(cleaned_data, concavity_se = ifelse(concavity_se > 0.08249 , median(concavity_se), concavity_se))
+cleaned_data = mutate(cleaned_data, concave.points_se = ifelse(concave.points_se > 0.025318 , median(concave.points_se), concave.points_se))
+cleaned_data = mutate(cleaned_data, symmetry_se = ifelse(symmetry_se > 0.03596 , median(symmetry_se), symmetry_se))
+cleaned_data = mutate(cleaned_data, fractal_dimension_se = ifelse(fractal_dimension_se > 0.008023 , median(fractal_dimension_se), fractal_dimension_se))
+cleaned_data = mutate(cleaned_data, radius_worst = ifelse(radius_worst > 27.46 , median(radius_worst), radius_worst))
+cleaned_data = mutate(cleaned_data, texture_worst = ifelse(texture_worst > 42.68 , median(texture_worst), texture_worst))
+cleaned_data = mutate(cleaned_data, perimeter_worst = ifelse(perimeter_worst > 187.335 , median(perimeter_worst), perimeter_worst))
+cleaned_data = mutate(cleaned_data, area_worst = ifelse(area_worst > 1937.05 , median(area_worst), area_worst))
+cleaned_data = mutate(cleaned_data, smoothness_worst = ifelse(smoothness_worst > 0.1901 , median(smoothness_worst), smoothness_worst))
+cleaned_data = mutate(cleaned_data, smoothness_worst = ifelse(smoothness_worst < 0.0725 , median(smoothness_worst), smoothness_worst))
+cleaned_data = mutate(cleaned_data, compactness_worst = ifelse(compactness_worst > 0.62695 , median(compactness_worst), compactness_worst))
+cleaned_data = mutate(cleaned_data, concavity_worst = ifelse(concavity_worst > 0.7855 , median(concavity_worst), concavity_worst))
+cleaned_data = mutate(cleaned_data, symmetry_worst = ifelse(symmetry_worst >  0.3179 , median(symmetry_worst), symmetry_worst))
+cleaned_data = mutate(cleaned_data, fractal_dimension_worst = ifelse(fractal_dimension_worst >  0.12301 , median(fractal_dimension_worst), fractal_dimension_worst))
 ```
 
 ```{r}
-head(num_data)
+#cleaned_num_data = cleaned_data(, 1:30)
 ```
 
 The `echo: false` option disables the printing of code (only output is displayed).
@@ -76,7 +106,7 @@ summary(data$radius_mean)
 
 ## upper bound = 21.9 
 
-cleaned_data = mutate(cleaned_data, radius_mean = ifelse(radius_mean > 21.9, median(radius_mean), radius_mean))
+#cleaned_data = mutate(cleaned_data, radius_mean = ifelse(radius_mean > 21.9, median(radius_mean), radius_mean))
 
 boxplot(cleaned_data$radius_mean,
         names = c("texture_mean"),
@@ -102,7 +132,7 @@ summary(data$texture_mean)
 
 ## upper bound 30.245 
 
-cleaned_data = mutate(cleaned_data, texture_mean = ifelse(texture_mean > 30.245, median(texture_mean), texture_mean))
+#cleaned_data = mutate(cleaned_data, texture_mean = ifelse(texture_mean > 30.245, median(texture_mean), texture_mean))
 
 boxplot(cleaned_data$texture_mean,
         names = c("texture_mean"),
@@ -126,7 +156,7 @@ summary(data$perimeter_mean)
 
 ## upper bound = 147.495
 
-cleaned_data = mutate(cleaned_data, perimeter_mean = ifelse(perimeter_mean > 147.495, median(perimeter_mean), perimeter_mean))
+#cleaned_data = mutate(cleaned_data, perimeter_mean = ifelse(perimeter_mean > 147.495, median(perimeter_mean), perimeter_mean))
 
 boxplot(cleaned_data$perimeter_mean,
         names = c("perimeter_mean"),
@@ -151,7 +181,7 @@ summary(data$area_mean)
 
 ## upper bound = 1326.3
 
-cleaned_data = mutate(cleaned_data, area_mean = ifelse(area_mean > 1326.3, median(area_mean), area_mean))
+#cleaned_data = mutate(cleaned_data, area_mean = ifelse(area_mean > 1326.3, median(area_mean), area_mean))
 
 boxplot(cleaned_data$area_mean,
         names = c("area_mean"),
@@ -178,8 +208,8 @@ summary(data$smoothness_mean)
 
 ## lower bound = .057975
 
-cleaned_data = mutate(cleaned_data, smoothness_mean = ifelse(smoothness_mean > .133695, median(smoothness_mean), smoothness_mean))
-cleaned_data = mutate(cleaned_data, smoothness_mean = ifelse(smoothness_mean < .057975, median(smoothness_mean), smoothness_mean))
+#cleaned_data = mutate(cleaned_data, smoothness_mean = ifelse(smoothness_mean > .133695, median(smoothness_mean), smoothness_mean))
+#cleaned_data = mutate(cleaned_data, smoothness_mean = ifelse(smoothness_mean < .057975, median(smoothness_mean), smoothness_mean))
 
 boxplot(cleaned_data$smoothness_mean,
         names = c("smoothness_mean"),
@@ -203,7 +233,7 @@ summary(data$compactness_mean)
 
 ## upper bound = .22862
 
-cleaned_data = mutate(cleaned_data, compactness_mean = ifelse(compactness_mean > .22862, median(compactness_mean), compactness_mean))
+#cleaned_data = mutate(cleaned_data, compactness_mean = ifelse(compactness_mean > .22862, median(compactness_mean), compactness_mean))
 
 boxplot(cleaned_data$compactness_mean,
         names = c("compactness_mean"),
@@ -227,7 +257,7 @@ summary(data$concavity_mean)
 ## upper bound = .28241
 
 
-cleaned_data = mutate(cleaned_data, concavity_mean = ifelse(concavity_mean > .28241, median(concavity_mean), concavity_mean))
+#cleaned_data = mutate(cleaned_data, concavity_mean = ifelse(concavity_mean > .28241, median(concavity_mean), concavity_mean))
 
 boxplot(cleaned_data$concavity_mean,
         names = c("concavity_mean"),
@@ -251,7 +281,7 @@ boxplot(data$concave.points_mean,
 summary(data$concave.points_mean)
 
 
-cleaned_data = mutate(cleaned_data, concave.points_mean = ifelse(concave.points_mean > .154535, median(concave.points_mean), concave.points_mean))
+#cleaned_data = mutate(cleaned_data, concave.points_mean = ifelse(concave.points_mean > .154535, median(concave.points_mean), concave.points_mean))
 
 boxplot(cleaned_data$concave.points_mean,
         names = c("concave.points_mean"),
@@ -284,8 +314,8 @@ summary(data$symmetry_mean)
 
 0.1619 - 0.0507
 
-cleaned_data = mutate(cleaned_data, symmetry_mean = ifelse(symmetry_mean > 0.2464, median(symmetry_mean), symmetry_mean))
-cleaned_data = mutate(cleaned_data, symmetry_mean = ifelse(symmetry_mean < 0.1112, median(symmetry_mean), symmetry_mean))
+#cleaned_data = mutate(cleaned_data, symmetry_mean = ifelse(symmetry_mean > 0.2464, median(symmetry_mean), symmetry_mean))
+#cleaned_data = mutate(cleaned_data, symmetry_mean = ifelse(symmetry_mean < 0.1112, median(symmetry_mean), symmetry_mean))
 boxplot(cleaned_data$symmetry_mean,
         names = c("symmetry_mean"),
         main = "Boxplot: Checking for Outliers in symmetry_mean", 
@@ -307,7 +337,7 @@ boxplot(data$fractal_dimension_mean,
 summary(data$fractal_dimension_mean)
 ((0.06612 - 0.05770 ) * 1.5) + 0.06612 # 0.07875
 
-cleaned_data = mutate(cleaned_data, fractal_dimension_mean = ifelse(fractal_dimension_mean > 0.07875, median(fractal_dimension_mean), fractal_dimension_mean))
+#cleaned_data = mutate(cleaned_data, fractal_dimension_mean = ifelse(fractal_dimension_mean > 0.07875, median(fractal_dimension_mean), fractal_dimension_mean))
 
 boxplot(cleaned_data$fractal_dimension_mean,
         names = c("fractal_dimension_mean"),
@@ -331,7 +361,7 @@ summary(data$radius_se)
 
 ((0.4789 - 0.2324) * 1.5) + 0.4789 #. 0.84865
 
-cleaned_data = mutate(cleaned_data, radius_se = ifelse(radius_se > 0.84865, median(radius_se), radius_se))
+#cleaned_data = mutate(cleaned_data, radius_se = ifelse(radius_se > 0.84865, median(radius_se), radius_se))
 
 boxplot(cleaned_data$radius_se,
         names = c("radius_se"),
@@ -355,7 +385,7 @@ summary(data$texture_se)
 
 ((1.4740 - 0.8339) * 1.5) +  1.4740 # 2.43415
 
-cleaned_data = mutate(cleaned_data, texture_se = ifelse(texture_se > 2.43415, median(texture_se), texture_se))
+#cleaned_data = mutate(cleaned_data, texture_se = ifelse(texture_se > 2.43415, median(texture_se), texture_se))
 
 boxplot(cleaned_data$texture_se,
         names = c("texture_se"),
@@ -379,7 +409,7 @@ summary(data$perimeter_se)
 
 ((3.357 - 1.606) * 1.5) + 3.357 # 5.9835
 
-cleaned_data = mutate(cleaned_data, perimeter_se = ifelse(perimeter_se > 5.9835, median(perimeter_se), perimeter_se))
+#cleaned_data = mutate(cleaned_data, perimeter_se = ifelse(perimeter_se > 5.9835, median(perimeter_se), perimeter_se))
 
 boxplot(cleaned_data$perimeter_se,
         names = c("perimeter_se"),
@@ -402,7 +432,7 @@ boxplot(data$area_se,
 summary(data$area_se)
 ((45.190 - 17.850) * 1.5) + 45.190 # 86.2 
 
-cleaned_data = mutate(cleaned_data, area_se = ifelse(area_se > 86.2 , median(area_se), area_se))
+#cleaned_data = mutate(cleaned_data, area_se = ifelse(area_se > 86.2 , median(area_se), area_se))
 
 boxplot(cleaned_data$area_se,
         names = c("area_se"),
@@ -426,7 +456,7 @@ summary(data$smoothness_se)
 
 ((0.008146 - 0.005169) *1.5) + 0.008146 ## 0.0126115
 
-cleaned_data = mutate(cleaned_data, smoothness_se = ifelse(smoothness_se > 0.0126115 , median(smoothness_se), smoothness_se))
+#cleaned_data = mutate(cleaned_data, smoothness_se = ifelse(smoothness_se > 0.0126115 , median(smoothness_se), smoothness_se))
 
 boxplot(cleaned_data$smoothness_se,
         names = c("smoothness_se"),
@@ -452,7 +482,7 @@ summary(data$compactness_se)
 ((0.032450 - 0.013080) * 1.5) + 0.032450 # 0.061505
 
 
-cleaned_data = mutate(cleaned_data, compactness_se = ifelse(compactness_se > 0.061505 , median(compactness_se), compactness_se))
+#cleaned_data = mutate(cleaned_data, compactness_se = ifelse(compactness_se > 0.061505 , median(compactness_se), compactness_se))
 
 boxplot(cleaned_data$compactness_se,
         names = c("compactness_se"),
@@ -477,7 +507,7 @@ summary(data$concavity_se)
 
 ((0.04205 - 0.01509) * 1.5) + 0.04205 ## 0.08249
 
-cleaned_data = mutate(cleaned_data, concavity_se = ifelse(concavity_se > 0.08249 , median(concavity_se), concavity_se))
+#cleaned_data = mutate(cleaned_data, concavity_se = ifelse(concavity_se > 0.08249 , median(concavity_se), concavity_se))
 
 boxplot(cleaned_data$concavity_se,
         names = c("concavity_se"),
@@ -501,7 +531,7 @@ summary(data$concave.points_se)
 
 ((0.014710 - 0.007638) * 1.5) + 0.014710 # 0.025318
 
-cleaned_data = mutate(cleaned_data, concave.points_se = ifelse(concave.points_se > 0.025318 , median(concave.points_se), concave.points_se))
+#cleaned_data = mutate(cleaned_data, concave.points_se = ifelse(concave.points_se > 0.025318 , median(concave.points_se), concave.points_se))
 
 boxplot(cleaned_data$concave.points_se,
         names = c("concave.points_se"),
@@ -525,7 +555,7 @@ summary(data$symmetry_se)
 
 ((0.023480 - 0.015160) * 1.5) + 0.023480 # 0.03596
 
-cleaned_data = mutate(cleaned_data, symmetry_se = ifelse(symmetry_se > 0.03596 , median(symmetry_se), symmetry_se))
+#cleaned_data = mutate(cleaned_data, symmetry_se = ifelse(symmetry_se > 0.03596 , median(symmetry_se), symmetry_se))
 
 boxplot(cleaned_data$symmetry_se,
         names = c("symmetry_se"),
@@ -549,7 +579,7 @@ summary(data$fractal_dimension_se)
 
 ((0.0045580 - 0.0022480) * 1.5 ) + 0.0045580 # 0.008023
 
-cleaned_data = mutate(cleaned_data, fractal_dimension_se = ifelse(fractal_dimension_se > 0.008023 , median(fractal_dimension_se), fractal_dimension_se))
+#cleaned_data = mutate(cleaned_data, fractal_dimension_se = ifelse(fractal_dimension_se > 0.008023 , median(fractal_dimension_se), fractal_dimension_se))
 
 boxplot(cleaned_data$fractal_dimension_se,
         names = c("fractal_dimension_se"),
@@ -560,8 +590,6 @@ boxplot(cleaned_data$fractal_dimension_se,
 
 summary(cleaned_data$fractal_dimension_se)
 ```
-
-
 
 ```{r}
 boxplot(data$radius_worst,
@@ -575,7 +603,7 @@ summary(data$radius_worst)
 
  ((18.79 - 13.01) * 1.5) + 18.79 # 27.46
 
-cleaned_data = mutate(cleaned_data, radius_worst = ifelse(radius_worst > 27.46 , median(radius_worst), radius_worst))
+#cleaned_data = mutate(cleaned_data, radius_worst = ifelse(radius_worst > 27.46 , median(radius_worst), radius_worst))
 
 boxplot(cleaned_data$radius_worst,
         names = c("radius_worst"),
@@ -601,7 +629,7 @@ summary(data$texture_worst)
 
 ((29.72 - 21.08) * 1.5) +  29.72 # 42.68
 
-cleaned_data = mutate(cleaned_data, texture_worst = ifelse(texture_worst > 42.68 , median(texture_worst), texture_worst))
+#cleaned_data = mutate(cleaned_data, texture_worst = ifelse(texture_worst > 42.68 , median(texture_worst), texture_worst))
 
 boxplot(cleaned_data$texture_worst,
         names = c("texture_worst"),
@@ -613,7 +641,6 @@ boxplot(cleaned_data$texture_worst,
 summary(cleaned_data$texture_worst)
 
 ```
-
 
 ```{r}
 boxplot(data$perimeter_worst,
@@ -627,7 +654,7 @@ summary(data$perimeter_worst)
 
 ((125.40 - 84.11) * 1.5) + 125.40 ## 187.335
 
-cleaned_data = mutate(cleaned_data, perimeter_worst = ifelse(perimeter_worst > 187.335 , median(perimeter_worst), perimeter_worst))
+#cleaned_data = mutate(cleaned_data, perimeter_worst = ifelse(perimeter_worst > 187.335 , median(perimeter_worst), perimeter_worst))
 
 boxplot(cleaned_data$perimeter_worst,
         names = c("perimeter_worst"),
@@ -651,7 +678,7 @@ summary(data$area_worst)
 
 ((1084.0 - 515.3) * 1.5) + 1084.0 #1937.05
 
-cleaned_data = mutate(cleaned_data, area_worst = ifelse(area_worst > 1937.05 , median(area_worst), area_worst))
+#cleaned_data = mutate(cleaned_data, area_worst = ifelse(area_worst > 1937.05 , median(area_worst), area_worst))
 
 boxplot(cleaned_data$area_worst,
         names = c("area_worst"),
@@ -676,8 +703,8 @@ summary(data$smoothness_worst)
 ((0.14600 - 0.11660) * 1.5 ) + 0.14600 #0.1901
 0.11660 - ((0.14600 - 0.11660) * 1.5 ) #0.0725
 
-cleaned_data = mutate(cleaned_data, smoothness_worst = ifelse(smoothness_worst > 0.1901 , median(smoothness_worst), smoothness_worst))
-cleaned_data = mutate(cleaned_data, smoothness_worst = ifelse(smoothness_worst < 0.0725 , median(smoothness_worst), smoothness_worst))
+#cleaned_data = mutate(cleaned_data, smoothness_worst = ifelse(smoothness_worst > 0.1901 , median(smoothness_worst), smoothness_worst))
+#cleaned_data = mutate(cleaned_data, smoothness_worst = ifelse(smoothness_worst < 0.0725 , median(smoothness_worst), smoothness_worst))
 boxplot(cleaned_data$smoothness_worst,
         names = c("smoothness_worst"),
         main = "Boxplot: Checking for Outliers in smoothness_worst", 
@@ -701,7 +728,7 @@ summary(data$compactness_worst)
 
 ((0.33910 - 0.14720) * 1.5 ) + 0.33910 # 0.62695
 
-cleaned_data = mutate(cleaned_data, compactness_worst = ifelse(compactness_worst > 0.62695 , median(compactness_worst), compactness_worst))
+#cleaned_data = mutate(cleaned_data, compactness_worst = ifelse(compactness_worst > 0.62695 , median(compactness_worst), compactness_worst))
 
 boxplot(cleaned_data$compactness_worst,
         names = c("compactness_worst"),
@@ -726,7 +753,7 @@ summary(data$concavity_worst)
 
 ((0.3829 - 0.1145) * 1.5) + 0.3829 ## 0.7855
 
-cleaned_data = mutate(cleaned_data, concavity_worst = ifelse(concavity_worst > 0.7855 , median(concavity_worst), concavity_worst))
+#cleaned_data = mutate(cleaned_data, concavity_worst = ifelse(concavity_worst > 0.7855 , median(concavity_worst), concavity_worst))
 
 boxplot(cleaned_data$concavity_worst,
         names = c("concavity_worst"),
@@ -762,7 +789,7 @@ summary(data$symmetry_worst)
 
 ((0.3179 - 0.2504) * 1.5) + 0.3179 ## 0.41915
 
-cleaned_data = mutate(cleaned_data, symmetry_worst = ifelse(symmetry_worst >  0.3179 , median(symmetry_worst), symmetry_worst))
+#cleaned_data = mutate(cleaned_data, symmetry_worst = ifelse(symmetry_worst >  0.3179 , median(symmetry_worst), symmetry_worst))
 
 boxplot(cleaned_data$symmetry_worst,
         names = c("symmetry_worst"),
@@ -785,7 +812,7 @@ boxplot(data$fractal_dimension_worst,
 summary(data$fractal_dimension_worst)
 ((0.09208 - 0.07146) * 1.5) + 0.09208 # 0.12301
 
-cleaned_data = mutate(cleaned_data, fractal_dimension_worst = ifelse(fractal_dimension_worst >  0.12301 , median(fractal_dimension_worst), fractal_dimension_worst))
+#cleaned_data = mutate(cleaned_data, fractal_dimension_worst = ifelse(fractal_dimension_worst >  0.12301 , median(fractal_dimension_worst), fractal_dimension_worst))
 
 boxplot(cleaned_data$fractal_dimension_worst,
         names = c("fractal_dimension_worst"),
@@ -818,6 +845,7 @@ colSums(is.na(data)) ## looks for na values in each column
 normalized_data = scale(num_data)
 head(normalized_data)
 ```
+
 ```{r}
 cleaned_normalized_data = scale(cleaned_data)
 head(cleaned_normalized_data)
@@ -827,7 +855,6 @@ head(cleaned_normalized_data)
 corPlot(normalized_data, cex = .5, xsrt = 90, ysrt = 90, cex.axis = .75, cex.ysrt = .5, stars =TRUE) # psych
 corPlot(cleaned_normalized_data, cex = .5, xsrt = 90, ysrt = 90, cex.axis = .75, cex.ysrt = .5, stars =TRUE)
 ```
-
 
 ```{r}
 df_normalized_data = data.frame(normalized_data)
@@ -844,6 +871,7 @@ ggcorrplot(correlation_matrix) + theme(axis.text.y = element_text(size = 6), axi
 ```{r}
 data.pca = princomp(normalized_data)
 ```
+
 ```{r}
 clean.data.pca = princomp(cleaned_normalized_data)
 ```
@@ -856,7 +884,6 @@ summary(data.pca)
 summary(clean.data.pca)
 ```
 
-
 ```{r}
 data.pca$loadings[, 1:5]
 ```
@@ -864,7 +891,6 @@ data.pca$loadings[, 1:5]
 ```{r}
 clean.data.pca$loadings[, 1:2]
 ```
-
 
 ```{r}
 fviz_eig(data.pca, addlabels = TRUE)
@@ -901,6 +927,7 @@ print('this code cell is blank')
 ```{r}
 print('this code cell is blank')
 ```
+
 ```{r}
 
 shortened_data = select(cleaned_data, c("diagnosis", "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se"))
@@ -922,3 +949,90 @@ model.matrix(~0+., data=shortened_data) %>%
   ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2) + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(angle = 90, hjust = 1, size = 6))
 ```
 
+```{r}
+### knn model 
+
+head(cleaned_data)
+```
+
+```{r}
+library(caTools)
+library(readr)
+library(downloader)
+library(caTools)
+library(FNN)
+library(readxl)
+```
+
+```{r}
+library(caTools)
+set.seed(42)
+split = sample.split(shortened_data$diagnosis, SplitRatio = 0.8)
+```
+
+```{r}
+train_data = subset(shortened_data, split == TRUE)
+test_data = subset(shortened_data, split == FALSE)
+```
+
+```{r}
+numbers <- c(1:100)
+results <- numeric()
+for (num in numbers){
+  knn_model = knn(train = train_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean",   "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se")], 
+                test = test_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se")], 
+                cl = train_data$diagnosis, 
+                k = num)
+  pred = knn_model
+  confusion_matrix = table(test_data$diagnosis, pred)
+  accuracy = sum(diag(confusion_matrix)) / sum(confusion_matrix)
+  results <- c(results, accuracy)
+  print(accuracy)}
+print(results)
+```
+
+```{r}
+results_df = data.frame(results, Number_of_Neighbours = 1:100)
+head(results_df, 10)
+```
+
+```{r}
+ggplot(data = results_df, aes( x = Number_of_Neighbours, y = results)) +
+  geom_line() +
+  labs(title = "Error", 
+       x = "# Neighbours",
+       y = "Accuracy") 
+```
+
+```{r}
+filtered_results = filter(results_df, Number_of_Neighbours < 25, Number_of_Neighbours > 15)
+```
+
+```{r}
+ggplot(data = filtered_results, aes( x = Number_of_Neighbours, y = results)) +
+  geom_line() +
+  labs(title = "Error", 
+       x = "# Neighbours",
+       y = "Accuracy") 
+```
+
+## The optimal Number of Neighburs is 20 and 22
+
+```{r}
+knn_model_2 = knn(train = train_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean",   "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se")], 
+                test = test_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se")], 
+                cl = train_data$diagnosis, 
+                k = 98)
+```
+
+```{r}
+pred_2 = knn_model_2
+```
+
+```{r}
+confusion_matrix_2 = table(test_data$diagnosis, pred_2)
+accuracy_2 = sum(diag(confusion_matrix_2)) / sum(confusion_matrix_2)
+
+print(confusion_matrix_2)
+print(accuracy_2)
+```
