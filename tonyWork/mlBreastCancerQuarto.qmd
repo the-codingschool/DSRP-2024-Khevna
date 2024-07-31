@@ -655,7 +655,7 @@ ggplot(accuracies_dataframe_long, aes(x = Metric, y = Accuracy)) +
 ```{r}
 big_accuracy_dataframe <- tibble()
 
-for(seed in 40:50){
+for(seed in 1:50){
   set.seed(seed)
 dataset <- data
 split <- sample.split(dataset$diagnosis,SplitRatio=0.7)
@@ -979,7 +979,7 @@ big_accuracy_dataframe <- bind_rows(big_accuracy_dataframe,accuracies_long)
 print(big_accuracy_dataframe)
 ggplot(big_accuracy_dataframe, aes(x = Metric, y = Accuracy)) +
   geom_boxplot(outlier.shape = NA) +  # Boxplot without outliers
-  geom_jitter(width = 0.2, size = 2,aes(color = Model)) +  # Add jitter points
+  geom_jitter(width = 0.2, size = 2,alpha=0.3,aes(color = Model)) +  # Add jitter points
   labs(title = "Model Accuracy Comparison",
        x = "Metric",
        y = "Accuracy (%)") +
