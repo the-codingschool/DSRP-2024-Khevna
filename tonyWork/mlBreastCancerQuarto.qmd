@@ -64,6 +64,9 @@ library(rpart)
 library(gbm)
 library(nnet)
 library(glmnet)
+library(gganimate)
+library(gifski)
+library(png)  
 ```
 
 ### Import Dataset
@@ -77,12 +80,6 @@ data <- read.csv("../data/breast_cancer_classification_data.csv")
 
 ```{r}
 data <- data[,c(-1,-33)]
-```
-
-```{r}
-column_names <- c("Model", "Metric", "Accuracy") 
-accuracy_dataframe <- data.frame(matrix(ncol = length(column_names), nrow = 0))
-colnames(accuracy_dataframe) <- column_names
 ```
 
 ```{r}
@@ -631,7 +628,6 @@ accuracies_long <- accuracies %>%
                values_to = "Accuracy") %>%
   mutate(Metric = recode(Metric, "All_Variables" = "All", "Subset" = "Sub"))
 print(accuracies_long)
-rbind(accuracy_dataframe,accuracies)
 ```
 
 ```{r}
@@ -655,7 +651,7 @@ ggplot(accuracies_dataframe_long, aes(x = Metric, y = Accuracy)) +
 ```{r}
 big_accuracy_dataframe <- tibble()
 
-for(seed in 1:50){
+for(seed in 1:200){
   set.seed(seed)
 dataset <- data
 split <- sample.split(dataset$diagnosis,SplitRatio=0.7)
@@ -969,14 +965,19 @@ accuracies_long <- accuracies %>%
                names_to = "Metric", 
                values_to = "Accuracy") %>%
   mutate(Metric = recode(Metric, "All_Variables" = "All", "Subset" = "Sub"))
-
+accuracies_long$seed = seed
 big_accuracy_dataframe <- bind_rows(big_accuracy_dataframe,accuracies_long)
 
 }
+
+#big_accuracy_dataframe <- big_accuracy_dataframe %>% mutate(simulation = row_number())
+
 ```
 
 ```{r}
 print(big_accuracy_dataframe)
+
+
 ggplot(big_accuracy_dataframe, aes(x = Metric, y = Accuracy)) +
   geom_boxplot(outlier.shape = NA) +  # Boxplot without outliers
   geom_jitter(width = 0.2, size = 2,alpha=0.3,aes(color = Model)) +  # Add jitter points
@@ -984,4 +985,40 @@ ggplot(big_accuracy_dataframe, aes(x = Metric, y = Accuracy)) +
        x = "Metric",
        y = "Accuracy (%)") +
   theme_minimal()
+```
+
+We see that the subset is very similar and barely better than using all the elements. This means that we don't really need the ones that we got rid of earlier to get very similar results.
+
+```{r}
+big_accuracy_dataframe2 <- big_accuracy_dataframe
+for(i in 1:199){
+  part_of_data <- big_accuracy_dataframe2 %>% filter(seed == i)
+  part_of_data$seed = i+1
+  big_accuracy_dataframe2 <- rbind(big_accuracy_dataframe2,part_of_data)
+}
+print(big_accuracy_dataframe2)
+```
+
+```{r}
+p <- ggplot(big_accuracy_dataframe2, aes(x = Metric, y = Accuracy)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(width = 0.2, size = 2, alpha = 0.3, aes(color = Model, group = interaction(Model, Metric))) +
+  labs(title = "Model Accuracy Comparison",
+       x = "Metric",
+       y = "Cumulative Accuracy (%)") +
+  theme_minimal() +
+  transition_states(seed, transition_length = 2, state_length = 1, wrap = FALSE) +
+  enter_fade() +
+  exit_fade() +
+  labs(subtitle = "Seed: {closest_state}")
+
+# Animate
+anim <- animate(p, duration = 10, fps = 20, width = 800, height = 600, renderer = gifski_renderer())
+
+# Save the animation
+anim_save("model_accuracy_comparison_cumulative.gif", anim)
+```
+
+```{r}
+anim
 ```
