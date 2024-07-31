@@ -80,6 +80,12 @@ data <- data[,c(-1,-33)]
 ```
 
 ```{r}
+column_names <- c("Model", "Metric", "Accuracy") 
+accuracy_dataframe <- data.frame(matrix(ncol = length(column_names), nrow = 0))
+colnames(accuracy_dataframe) <- column_names
+```
+
+```{r}
 head(data)
 ```
 
@@ -125,10 +131,10 @@ actuals <- testing$diagnosis
 
 confusion_matrix <- table(Predicted = predictions, Actual = actuals)
 
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracyrf1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 confusion_matrix
-cat("Accuracy: ", round(accuracy*100, 2), "%")
+cat("Accuracy: ", round(accuracyrf1*100, 2), "%")
 ```
 
 ```{r}
@@ -171,10 +177,10 @@ actuals <- testingSubset$diagnosis
 
 confusion_matrix <- table(Predicted = predictions, Actual = actuals)
 
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracyrf2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 confusion_matrix
-cat("Accuracy: ", round(accuracy*100, 2), "%")
+cat("Accuracy: ", round(accuracyrf2*100, 2), "%")
 ```
 
 ```{r}
@@ -208,31 +214,29 @@ cat("Accuracy: ", round(accuracy*100, 2), "%")
 ```
 
 ```{r}
-set.seed(42)
 knn_model <- knn(train = training[,-1], test=testing[,-1],cl=training$diagnosis, k=5)
 
 actuals <- testing$diagnosis
 
 confusion_matrix <- table(Predicted = knn_model, Actual = actuals)
 
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracyknn1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 confusion_matrix
-cat("Accuracy: ", round(accuracy*100, 2), "%")
+cat("Accuracy: ", round(accuracyknn1*100, 2), "%")
 ```
 
 ```{r}
-set.seed(42)
 knn_model <- knn(train = trainingSubset[,-1], test=testingSubset[,-1],cl=training$diagnosis, k=5)
 
 actuals <- testingSubset$diagnosis
 
 confusion_matrix <- table(Predicted = knn_model, Actual = actuals)
 
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracyknn2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 confusion_matrix
-cat("Accuracy: ", round(accuracy*100, 2), "%")
+cat("Accuracy: ", round(accuracyknn2*100, 2), "%")
 ```
 
 ```{r}
@@ -248,10 +252,10 @@ svm_model <- svm(diagnosis ~ ., data = training, kernel = "radial", cost = 1, sc
 predictions <- predict(svm_model, testing)
 confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
 
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracysvm1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 confusion_matrix
-cat("Accuracy: ", round(accuracy*100, 2), "%")
+cat("Accuracy: ", round(accuracysvm1*100, 2), "%")
 ```
 
 ```{r}
@@ -260,10 +264,10 @@ svm_model <- svm(diagnosis ~ ., data = trainingSubset, kernel = "radial", cost =
 predictions <- predict(svm_model, testingSubset)
 confusion_matrix <- table(Predicted = predictions, Actual = testingSubset$diagnosis)
 
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracysvm2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 confusion_matrix
-cat("Accuracy: ", round(accuracy*100, 2), "%")
+cat("Accuracy: ", round(accuracysvm2*100, 2), "%")
 ```
 
 Decision Tree Model
@@ -272,20 +276,20 @@ Decision Tree Model
 dt_model <- rpart(diagnosis ~ ., data = training, method = "class")
 predictions <- predict(dt_model, testing, type = "class")
 confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracydt1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 confusion_matrix
-cat("Accuracy: ", round(accuracy*100, 2), "%")
+cat("Accuracy: ", round(accuracydt1*100, 2), "%")
 ```
 
 ```{r}
 dt_model <- rpart(diagnosis ~ ., data = trainingSubset, method = "class")
 predictions <- predict(dt_model, testingSubset, type = "class")
 confusion_matrix <- table(Predicted = predictions, Actual = testingSubset$diagnosis)
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracydt2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 confusion_matrix
-cat("Accuracy: ", round(accuracy*100, 2), "%")
+cat("Accuracy: ", round(accuracydt2*100, 2), "%")
 ```
 
 Naive Bayes Classifier
@@ -294,20 +298,20 @@ Naive Bayes Classifier
 nb_model <- naiveBayes(diagnosis ~ ., data = training)
 predictions <- predict(nb_model, testing)
 confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracynb1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 confusion_matrix
-cat("Accuracy: ", round(accuracy*100, 2), "%")
+cat("Accuracy: ", round(accuracynb1*100, 2), "%")
 ```
 
 ```{r}
 nb_model <- naiveBayes(diagnosis ~ ., data = trainingSubset)
 predictions <- predict(nb_model, testingSubset)
 confusion_matrix <- table(Predicted = predictions, Actual = testingSubset$diagnosis)
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracynb2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 confusion_matrix
-cat("Accuracy: ", round(accuracy*100, 2), "%")
+cat("Accuracy: ", round(accuracynb2*100, 2), "%")
 ```
 
 Logistic Regression
@@ -319,10 +323,10 @@ predictions <- ifelse(predictions_prob > 0.5, "M", "B")
 predictions <- factor(predictions, levels = levels(testing$diagnosis))
 
 confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracylr1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 confusion_matrix
-cat("Accuracy: ", round(accuracy*100, 2), "%")
+cat("Accuracy: ", round(accuracylr1*100, 2), "%")
 ```
 
 ```{r}
@@ -332,10 +336,10 @@ predictions <- ifelse(predictions_prob > 0.5, "M", "B")
 predictions <- factor(predictions, levels = levels(testingSubset$diagnosis))
 
 confusion_matrix <- table(Predicted = predictions, Actual = testingSubset$diagnosis)
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracylr2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 confusion_matrix
-cat("Accuracy: ", round(accuracy*100, 2), "%")
+cat("Accuracy: ", round(accuracylr2*100, 2), "%")
 ```
 
 Adaptive Boosting
@@ -345,10 +349,10 @@ ab_model <- boosting(diagnosis ~ ., data = training, mfinal = 50)
 predictions <- predict(ab_model, newdata = testing)
 
 confusion_matrix <- table(Predicted = predictions$class, Actual = testing$diagnosis)
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracyab1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 confusion_matrix
-cat("Accuracy: ", round(accuracy*100, 2), "%")
+cat("Accuracy: ", round(accuracyab1*100, 2), "%")
 ```
 
 ```{r}
@@ -356,10 +360,10 @@ ab_model <- boosting(diagnosis ~ ., data = trainingSubset, mfinal = 50)
 predictions <- predict(ab_model, newdata = testingSubset)
 
 confusion_matrix <- table(Predicted = predictions$class, Actual = testingSubset$diagnosis)
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracyab2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 confusion_matrix
-cat("Accuracy: ", round(accuracy*100, 2), "%")
+cat("Accuracy: ", round(accuracyab2*100, 2), "%")
 ```
 
 Gradient Boosting
@@ -388,11 +392,11 @@ predictions <- factor(predictions, levels = c(0, 1))
 actual <- factor(testing1$diagnosis, levels = c(0, 1))
 
 confusion_matrix <- table(Predicted = predictions, Actual = actual)
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracygb1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 
 print(confusion_matrix)
-cat("Accuracy: ", round(accuracy * 100, 2), "%\n")
+cat("Accuracy: ", round(accuracygb1 * 100, 2), "%\n")
 ```
 
 ```{r}
@@ -419,10 +423,10 @@ actual <- factor(testing1$diagnosis, levels = c(0, 1))
 
 
 confusion_matrix <- table(Predicted = predictions, Actual = actual)
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracygb2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 print(confusion_matrix)
-cat("Accuracy: ", round(accuracy * 100, 2), "%\n")
+cat("Accuracy: ", round(accuracygb2 * 100, 2), "%\n")
 ```
 
 ```{r}
@@ -447,10 +451,10 @@ predictions <- factor(predictions, levels = c(0, 1))
 actual <- factor(testing1$diagnosis, levels = c(0, 1))
 
 confusion_matrix <- table(Predicted = predictions, Actual = actual)
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracymlp1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 print(confusion_matrix)
-cat("Accuracy: ", round(accuracy * 100, 2), "%\n")
+cat("Accuracy: ", round(accuracymlp1 * 100, 2), "%\n")
 ```
 
 ```{r}
@@ -475,10 +479,10 @@ predictions <- factor(predictions, levels = c(0, 1))
 actual <- factor(testing1$diagnosis, levels = c(0, 1))
 
 confusion_matrix <- table(Predicted = predictions, Actual = actual)
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracymlp2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 print(confusion_matrix)
-cat("Accuracy: ", round(accuracy * 100, 2), "%\n")
+cat("Accuracy: ", round(accuracymlp2 * 100, 2), "%\n")
 ```
 
 Neural Classification Chains
@@ -520,10 +524,10 @@ predictions2 <- factor(predictions2, levels = c(0, 1))
 actual <- factor(testing1$diagnosis, levels = c(0, 1))
 
 confusion_matrix <- table(Predicted = predictions2, Actual = actual)
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracyncc1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 print(confusion_matrix)
-cat("Accuracy: ", round(accuracy * 100, 2), "%\n")
+cat("Accuracy: ", round(accuracyncc1 * 100, 2), "%\n")
 ```
 
 ```{r}
@@ -563,8 +567,421 @@ predictions2 <- factor(predictions2, levels = c(0, 1))
 actual <- factor(testing1$diagnosis, levels = c(0, 1))
 
 confusion_matrix <- table(Predicted = predictions2, Actual = actual)
-accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracyncc2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 
 print(confusion_matrix)
-cat("Accuracy: ", round(accuracy * 100, 2), "%\n")
+cat("Accuracy: ", round(accuracyncc2 * 100, 2), "%\n")
+```
+
+```{r}
+cat("rf")
+cat("Accuracy: ", round(accuracyrf1 * 100, 2), "%\n")
+cat("Accuracy: ", round(accuracyrf2 * 100, 2), "%\n")
+cat("knn")
+cat("Accuracy: ", round(accuracyknn1 * 100, 2), "%\n")
+cat("Accuracy: ", round(accuracyknn2 * 100, 2), "%\n")
+cat("svm")
+cat("Accuracy: ", round(accuracysvm1 * 100, 2), "%\n")
+cat("Accuracy: ", round(accuracysvm2 * 100, 2), "%\n")
+cat("dt")
+cat("Accuracy: ", round(accuracydt1 * 100, 2), "%\n")
+cat("Accuracy: ", round(accuracydt2 * 100, 2), "%\n")
+cat("nb")
+cat("Accuracy: ", round(accuracynb1 * 100, 2), "%\n")
+cat("Accuracy: ", round(accuracynb2 * 100, 2), "%\n")
+cat("lr")
+cat("Accuracy: ", round(accuracylr1 * 100, 2), "%\n")
+cat("Accuracy: ", round(accuracylr2 * 100, 2), "%\n")
+cat("ab")
+cat("Accuracy: ", round(accuracyab1 * 100, 2), "%\n")
+cat("Accuracy: ", round(accuracyab2 * 100, 2), "%\n")
+cat("gb")
+cat("Accuracy: ", round(accuracygb1 * 100, 2), "%\n")
+cat("Accuracy: ", round(accuracygb2 * 100, 2), "%\n")
+cat("ncc")
+cat("Accuracy: ", round(accuracyncc1 * 100, 2), "%\n")
+cat("Accuracy: ", round(accuracyncc2 * 100, 2), "%\n")
+cat("mlp")
+cat("Accuracy: ", round(accuracymlp1 * 100, 2), "%\n")
+cat("Accuracy: ", round(accuracymlp2 * 100, 2), "%\n")
+```
+
+```{r}
+accuracies <- tibble(
+  Model = c("rf", "knn", "svm", "dt", "nb", "lr", "ab", "gb", "ncc", "mlp"),
+  All_Variables = c(round(accuracyrf1 * 100, 2), round(accuracyknn1 * 100, 2), round(accuracysvm1 * 100, 2),
+                 round(accuracydt1 * 100, 2), round(accuracynb1 * 100, 2), round(accuracylr1 * 100, 2),
+                 round(accuracyab1 * 100, 2), round(accuracygb1 * 100, 2), round(accuracyncc1 * 100, 2),
+                 round(accuracymlp1 * 100, 2)),
+  Subset = c(round(accuracyrf2 * 100, 2), round(accuracyknn2 * 100, 2), round(accuracysvm2 * 100, 2),
+                 round(accuracydt2 * 100, 2), round(accuracynb2 * 100, 2), round(accuracylr2 * 100, 2),
+                 round(accuracyab2 * 100, 2), round(accuracygb2 * 100, 2), round(accuracyncc2 * 100, 2),
+                 round(accuracymlp2 * 100, 2))
+)
+
+print(accuracies)
+
+
+```
+
+```{r}
+accuracies_long <- accuracies %>%
+  pivot_longer(cols = c("All_Variables", "Subset"), 
+               names_to = "Metric", 
+               values_to = "Accuracy") %>%
+  mutate(Metric = recode(Metric, "All_Variables" = "All", "Subset" = "Sub"))
+print(accuracies_long)
+rbind(accuracy_dataframe,accuracies)
+```
+
+```{r}
+
+accuracies_dataframe_long <- accuracies %>%
+  pivot_longer(cols = c("All_Variables", "Subset"), 
+               names_to = "Metric", 
+               values_to = "Accuracy") %>%
+  mutate(Metric = recode(Metric, "All_Variables" = "All", "Subset" = "Sub"))
+print(accuracies_dataframe_long)
+
+ggplot(accuracies_dataframe_long, aes(x = Metric, y = Accuracy)) +
+  geom_boxplot(outlier.shape = NA) +  # Boxplot without outliers
+  geom_jitter(width = 0.2, size = 2,aes(color = Model)) +  # Add jitter points
+  labs(title = "Model Accuracy Comparison",
+       x = "Metric",
+       y = "Accuracy (%)") +
+  theme_minimal()
+```
+
+```{r}
+big_accuracy_dataframe <- tibble()
+
+for(seed in 40:50){
+  set.seed(seed)
+dataset <- data
+split <- sample.split(dataset$diagnosis,SplitRatio=0.7)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+training$diagnosis <- as.factor(training$diagnosis)
+testing$diagnosis <- as.factor(testing$diagnosis)
+
+
+
+trainingSubset <- training %>% select(-c("concavity_mean","concave.points_mean","perimeter_worst","radius_mean","perimeter_mean","perimeter_se","area_worst","area_mean","area_se","texture_mean"))
+testingSubset <- testing %>% select(-c("concavity_mean","concave.points_mean","perimeter_worst","radius_mean","perimeter_mean","perimeter_se","area_worst","area_mean","area_se","texture_mean"))
+
+
+
+rf_model <- randomForest(x = training[,-1],
+                         y = training$diagnosis, ntree=50)
+
+predictions <- predict(rf_model, newdata = testing[,-1])
+
+actuals <- testing$diagnosis
+
+confusion_matrix <- table(Predicted = predictions, Actual = actuals)
+
+accuracyrf1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+rf_model <- randomForest(x = trainingSubset[,-1],
+                         y = trainingSubset$diagnosis, ntree=50)
+
+predictions <- predict(rf_model, newdata = testingSubset[,-1])
+
+actuals <- testingSubset$diagnosis
+
+confusion_matrix <- table(Predicted = predictions, Actual = actuals)
+
+accuracyrf2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+knn_model <- knn(train = training[,-1], test=testing[,-1],cl=training$diagnosis, k=5)
+
+actuals <- testing$diagnosis
+
+confusion_matrix <- table(Predicted = knn_model, Actual = actuals)
+
+accuracyknn1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+knn_model <- knn(train = trainingSubset[,-1], test=testingSubset[,-1],cl=training$diagnosis, k=5)
+
+actuals <- testingSubset$diagnosis
+
+confusion_matrix <- table(Predicted = knn_model, Actual = actuals)
+
+accuracyknn2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+svm_model <- svm(diagnosis ~ ., data = training, kernel = "radial", cost = 1, scale = TRUE)
+
+predictions <- predict(svm_model, testing)
+confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
+
+accuracysvm1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+svm_model <- svm(diagnosis ~ ., data = trainingSubset, kernel = "radial", cost = 1, scale = TRUE)
+
+predictions <- predict(svm_model, testingSubset)
+confusion_matrix <- table(Predicted = predictions, Actual = testingSubset$diagnosis)
+
+accuracysvm2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+dt_model <- rpart(diagnosis ~ ., data = training, method = "class")
+predictions <- predict(dt_model, testing, type = "class")
+confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
+accuracydt1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+dt_model <- rpart(diagnosis ~ ., data = trainingSubset, method = "class")
+predictions <- predict(dt_model, testingSubset, type = "class")
+confusion_matrix <- table(Predicted = predictions, Actual = testingSubset$diagnosis)
+accuracydt2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+nb_model <- naiveBayes(diagnosis ~ ., data = training)
+predictions <- predict(nb_model, testing)
+confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
+accuracynb1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+nb_model <- naiveBayes(diagnosis ~ ., data = trainingSubset)
+predictions <- predict(nb_model, testingSubset)
+confusion_matrix <- table(Predicted = predictions, Actual = testingSubset$diagnosis)
+accuracynb2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+lr_model <- glm(diagnosis ~ ., data = training, family = binomial)
+predictions_prob <- predict(lr_model, testing, type = "response")
+predictions <- ifelse(predictions_prob > 0.5, "M", "B")
+predictions <- factor(predictions, levels = levels(testing$diagnosis))
+
+confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
+accuracylr1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+lr_model <- glm(diagnosis ~ ., data = trainingSubset, family = binomial)
+predictions_prob <- predict(lr_model, testingSubset, type = "response")
+predictions <- ifelse(predictions_prob > 0.5, "M", "B")
+predictions <- factor(predictions, levels = levels(testingSubset$diagnosis))
+
+confusion_matrix <- table(Predicted = predictions, Actual = testingSubset$diagnosis)
+accuracylr2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+ab_model <- boosting(diagnosis ~ ., data = training, mfinal = 50)
+predictions <- predict(ab_model, newdata = testing)
+
+confusion_matrix <- table(Predicted = predictions$class, Actual = testing$diagnosis)
+accuracyab1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+ab_model <- boosting(diagnosis ~ ., data = trainingSubset, mfinal = 50)
+predictions <- predict(ab_model, newdata = testingSubset)
+
+confusion_matrix <- table(Predicted = predictions$class, Actual = testingSubset$diagnosis)
+accuracyab2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+training1 <- training
+testing1 <- testing
+training1$diagnosis <- as.numeric(training1$diagnosis) - 1
+testing1$diagnosis <- as.numeric(testing1$diagnosis) - 1
+
+gb_model <- gbm(
+  formula = diagnosis ~ ., 
+  data = training1, 
+  distribution = "bernoulli", 
+  n.trees = 100, 
+  interaction.depth = 3, 
+  shrinkage = 0.01, 
+  n.minobsinnode = 10
+)
+
+
+predictions_prob <- predict(gb_model, newdata = testing1, n.trees = 100, type = "response")
+predictions <- ifelse(predictions_prob > 0.5, 1, 0) 
+
+predictions <- factor(predictions, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions, Actual = actual)
+accuracygb1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+gb_model <- gbm(
+  formula = diagnosis ~ ., 
+  data = training1, 
+  distribution = "bernoulli", 
+  n.trees = 100, 
+  interaction.depth = 3, 
+  shrinkage = 0.01, 
+  n.minobsinnode = 10
+)
+
+predictions_prob <- predict(gb_model, newdata = testing1, n.trees = 100, type = "response")
+predictions <- ifelse(predictions_prob > 0.5, 1, 0)  
+
+predictions <- factor(predictions, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+
+confusion_matrix <- table(Predicted = predictions, Actual = actual)
+accuracygb2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+mlp_model <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,       
+  decay = 0.01,       
+  maxit = 200,        
+  linout = FALSE      
+)
+
+predictions_prob <- predict(mlp_model, newdata = testing1, type = "raw")
+predictions <- ifelse(predictions_prob > 0.5, 1, 0)  
+
+predictions <- factor(predictions, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions, Actual = actual)
+accuracymlp1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+mlp_model <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,       
+  decay = 0.01,       
+  maxit = 200,        
+  linout = FALSE      
+)
+
+predictions_prob <- predict(mlp_model, newdata = testing1, type = "raw")
+predictions <- ifelse(predictions_prob > 0.5, 1, 0)  
+
+predictions <- factor(predictions, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions, Actual = actual)
+accuracymlp2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+model1 <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,          
+  decay = 0.01,      
+  maxit = 200,        
+  linout = FALSE      
+)
+
+predictions_prob1 <- predict(model1, newdata = testing1, type = "raw")
+testing1$pred1 <- ifelse(predictions_prob1 > 0.5, 1, 0)
+
+train_predictions_prob1 <- predict(model1, newdata = training1, type = "raw")
+training1$pred1 <- ifelse(train_predictions_prob1 > 0.5, 1, 0)
+
+model2 <- nnet(
+  diagnosis ~ . + pred1, 
+  data = training1, 
+  size = 10,        
+  decay = 0.01,       
+  maxit = 200,     
+  linout = FALSE      
+)
+
+predictions_prob2 <- predict(model2, newdata = testing1, type = "raw")
+predictions2 <- ifelse(predictions_prob2 > 0.5, 1, 0)
+
+predictions2 <- factor(predictions2, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions2, Actual = actual)
+accuracyncc1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+model1 <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,          
+  decay = 0.01,      
+  maxit = 200,        
+  linout = FALSE      
+)
+
+predictions_prob1 <- predict(model1, newdata = testing1, type = "raw")
+testing1$pred1 <- ifelse(predictions_prob1 > 0.5, 1, 0)
+
+train_predictions_prob1 <- predict(model1, newdata = training1, type = "raw")
+training1$pred1 <- ifelse(train_predictions_prob1 > 0.5, 1, 0)
+
+model2 <- nnet(
+  diagnosis ~ . + pred1, 
+  data = training1, 
+  size = 10,        
+  decay = 0.01,       
+  maxit = 200,     
+  linout = FALSE      
+)
+
+predictions_prob2 <- predict(model2, newdata = testing1, type = "raw")
+predictions2 <- ifelse(predictions_prob2 > 0.5, 1, 0)
+
+predictions2 <- factor(predictions2, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions2, Actual = actual)
+accuracyncc2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+accuracies <- tibble(
+  Model = c("rf", "knn", "svm", "dt", "nb", "lr", "ab", "gb", "ncc", "mlp"),
+  All_Variables = c(round(accuracyrf1 * 100, 2), round(accuracyknn1 * 100, 2), round(accuracysvm1 * 100, 2),
+                    round(accuracydt1 * 100, 2), round(accuracynb1 * 100, 2), round(accuracylr1 * 100, 2),
+                    round(accuracyab1 * 100, 2), round(accuracygb1 * 100, 2), round(accuracyncc1 * 100, 2),
+                    round(accuracymlp1 * 100, 2)),
+  Subset = c(round(accuracyrf2 * 100, 2), round(accuracyknn2 * 100, 2), round(accuracysvm2 * 100, 2),
+             round(accuracydt2 * 100, 2), round(accuracynb2 * 100, 2), round(accuracylr2 * 100, 2),
+             round(accuracyab2 * 100, 2), round(accuracygb2 * 100, 2), round(accuracyncc2 * 100, 2),
+             round(accuracymlp2 * 100, 2))
+)
+
+accuracies_long <- accuracies %>%
+  pivot_longer(cols = c("All_Variables", "Subset"), 
+               names_to = "Metric", 
+               values_to = "Accuracy") %>%
+  mutate(Metric = recode(Metric, "All_Variables" = "All", "Subset" = "Sub"))
+
+big_accuracy_dataframe <- bind_rows(big_accuracy_dataframe,accuracies_long)
+
+}
+```
+
+```{r}
+print(big_accuracy_dataframe)
+ggplot(big_accuracy_dataframe, aes(x = Metric, y = Accuracy)) +
+  geom_boxplot(outlier.shape = NA) +  # Boxplot without outliers
+  geom_jitter(width = 0.2, size = 2,aes(color = Model)) +  # Add jitter points
+  labs(title = "Model Accuracy Comparison",
+       x = "Metric",
+       y = "Accuracy (%)") +
+  theme_minimal()
 ```
