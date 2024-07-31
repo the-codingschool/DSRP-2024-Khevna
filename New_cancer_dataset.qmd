@@ -24,19 +24,14 @@ library(tidyr)
 ```
 
 ```{r}
-install.packages('corrr')
 library(corrr)
-install.packages('ggcorrplot')
 library(ggcorrplot)
-install.packages('FactoMineR')
 library(FactoMineR)
-install.packages('factoextra')
 library(factoextra)
-install.packages('psych')
 library(psych)
 ```
 
-You can add options to executable code like this
+## Data = the original data; Outliers not taken out; Diagnosis M/B
 
 ```{r}
 data = read.csv("/Users/labibawajihasiddiquei/Downloads/data.csv")
@@ -44,13 +39,19 @@ head(data)
 ```
 
 ```{r}
-#data = mutate(data, diagnosis = ifelse(diagnosis == 'M', 1, 0)) # M = 1, B = 0
+num_data = select(data, 2:32)
+num_data = mutate(num_data, diagnosis = ifelse(diagnosis == 'M', 1, 0)) # M = 1, B = 0
+head(num_data)
 ```
+
+## Cleaned_data = outliers taken out Diagnosis = M/B used for KNN
 
 ```{r}
 cleaned_data = select(data, 2:32)
 head(cleaned_data)
 ```
+
+## Taking out Outliers and replacing it with median using mutate and ifelse
 
 ```{r}
 cleaned_data = mutate(cleaned_data, radius_mean = ifelse(radius_mean > 21.9, median(radius_mean), radius_mean))
@@ -87,9 +88,15 @@ cleaned_data = mutate(cleaned_data, symmetry_worst = ifelse(symmetry_worst >  0.
 cleaned_data = mutate(cleaned_data, fractal_dimension_worst = ifelse(fractal_dimension_worst >  0.12301 , median(fractal_dimension_worst), fractal_dimension_worst))
 ```
 
+## Cleaned_num_data = NO outliers Present ; Diagnosis = 1/0
+
 ```{r}
-#cleaned_num_data = cleaned_data(, 1:30)
+cleaned_num_data = select(cleaned_data, 1:31)
+cleaned_num_data = mutate(cleaned_num_data, diagnosis = ifelse(diagnosis == 'M', 1, 0)) # M = 1, B = 0
+head(cleaned_num_data)
 ```
+
+## Visualizing the numerical data before and after replacing Outliers
 
 The `echo: false` option disables the printing of code (only output is displayed).
 
@@ -836,9 +843,13 @@ print('This code cell is black')
 print('This code cell is black')
 ```
 
+## Looking for N/A values in each column
+
 ```{r}
 colSums(is.na(data)) ## looks for na values in each column 
 ```
+
+## Normalizing Data with outliers
 
 ```{r}
 ## normalizing data 
@@ -846,27 +857,52 @@ normalized_data = scale(num_data)
 head(normalized_data)
 ```
 
+## Normalizing data without outliers
+
 ```{r}
-cleaned_normalized_data = scale(cleaned_data)
+cleaned_normalized_data = scale(cleaned_num_data)
 head(cleaned_normalized_data)
 ```
 
-```{r}
-corPlot(normalized_data, cex = .5, xsrt = 90, ysrt = 90, cex.axis = .75, cex.ysrt = .5, stars =TRUE) # psych
-corPlot(cleaned_normalized_data, cex = .5, xsrt = 90, ysrt = 90, cex.axis = .75, cex.ysrt = .5, stars =TRUE)
-```
+## Plotting correlations of cleaned data
 
 ```{r}
+
+##clean data
+
+## Model Matrix 
+df_cleaned_normalized_data = data.frame(cleaned_normalized_data)
+model.matrix(~0+., data=df_cleaned_normalized_data) %>% 
+  cor(use="everything") %>% 
+  ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2) + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(angle = 90, hjust = 1, size = 6))
+
+## Correlation matrix 
+
+cleaned_correlation_matrix <- cor(df_cleaned_normalized_data, use = "everything")
+ggcorrplot(correlation_matrix) + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(angle = 90, hjust = 1, size = 6))
+
+corPlot(cleaned_normalized_data, cex = .5, xsrt = 90, ysrt = 90, cex.axis = .75, cex.ysrt = .5, stars =TRUE) # psych
+
+## Unclean data
+
+## Model Matrix 
 df_normalized_data = data.frame(normalized_data)
 model.matrix(~0+., data=df_normalized_data) %>% 
   cor(use="everything") %>% 
   ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2) + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(angle = 90, hjust = 1, size = 6))
-```
 
-```{r}
+## Correlation matrix 
+
 correlation_matrix <- cor(df_normalized_data, use = "everything")
 ggcorrplot(correlation_matrix) + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(angle = 90, hjust = 1, size = 6))
+
+##psych 
+
+corPlot(normalized_data, cex = .5, xsrt = 90, ysrt = 90, cex.axis = .75, cex.ysrt = .5, stars =TRUE) # psych
+
 ```
+
+## PCA of Clean and Uncleaned Data
 
 ```{r}
 data.pca = princomp(normalized_data)
@@ -898,10 +934,6 @@ fviz_eig(clean.data.pca, addlabels = TRUE)
 ```
 
 ```{r}
-fviz_pca_var(data.pca, color.var = "black") ## fix this 
-```
-
-```{r}
 fviz_cos2(data.pca, choice = "var", axes = 1:2)
 fviz_cos2(clean.data.pca, choice = "var", axes = 1:2)
 ```
@@ -917,20 +949,8 @@ fviz_pca_var(clean.data.pca, col.var = "cos2",
 ```
 
 ```{r}
-print('this code cell is blank')
-```
 
-```{r}
-print('this code cell is blank')
-```
-
-```{r}
-print('this code cell is blank')
-```
-
-```{r}
-
-shortened_data = select(cleaned_data, c("diagnosis", "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se"))
+shortened_data = select(cleaned_num_data, c("diagnosis", "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_worst", "concavity_worst"))
 head(shortened_data)
 ```
 
@@ -949,11 +969,7 @@ model.matrix(~0+., data=shortened_data) %>%
   ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2) + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(angle = 90, hjust = 1, size = 6))
 ```
 
-```{r}
-### knn model 
-
-head(cleaned_data)
-```
+## Making a KNN Model - Predicting of a cell is cancerous or not 
 
 ```{r}
 library(caTools)
@@ -965,7 +981,6 @@ library(readxl)
 ```
 
 ```{r}
-library(caTools)
 set.seed(42)
 split = sample.split(shortened_data$diagnosis, SplitRatio = 0.8)
 ```
@@ -987,8 +1002,10 @@ for (num in numbers){
   confusion_matrix = table(test_data$diagnosis, pred)
   accuracy = sum(diag(confusion_matrix)) / sum(confusion_matrix)
   results <- c(results, accuracy)
-  print(accuracy)}
-print(results)
+  #print(accuracy)
+  }
+#print(accuracy)
+#print(results)
 ```
 
 ```{r}
@@ -1016,23 +1033,151 @@ ggplot(data = filtered_results, aes( x = Number_of_Neighbours, y = results)) +
        y = "Accuracy") 
 ```
 
-## The optimal Number of Neighburs is 20 and 22
+## The optimal Number of Neighbour is 20 and 22
+
+## KNN model with 20 Neighbours
 
 ```{r}
-knn_model_2 = knn(train = train_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean",   "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se")], 
+knn_model_20 = knn(train = train_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean",   "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se")], 
                 test = test_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se")], 
                 cl = train_data$diagnosis, 
-                k = 98)
+                k = 20)
 ```
 
 ```{r}
-pred_2 = knn_model_2
+pred_20 = knn_model_20
 ```
 
 ```{r}
-confusion_matrix_2 = table(test_data$diagnosis, pred_2)
-accuracy_2 = sum(diag(confusion_matrix_2)) / sum(confusion_matrix_2)
+install.packages('gmodels')
+library(gmodels)
+confusion_matrix_20 = table(test_data$diagnosis, pred_20) ## actual confusion matrix ##
+table_confusion_matrix_20 = CrossTable(table(test_data$diagnosis, pred_20)) ## creating a confusion matrix table
+accuracy_20 = sum(diag(confusion_matrix_20)) / sum(confusion_matrix_20)
 
-print(confusion_matrix_2)
-print(accuracy_2)
+
+print(table_confusion_matrix_20)
+print(confusion_matrix_20)
+print(accuracy_20)
 ```
+
+## KNN model with 22 Neighbours
+
+```{r}
+
+knn_model_22 = knn(train = train_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean",   "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se")], 
+                test = test_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se")], 
+                cl = train_data$diagnosis, 
+                k = 22)
+
+pred_22 = knn_model_22
+
+confusion_matrix_22 = table(test_data$diagnosis, pred_22) ## actual confusion matrix ##
+table_confusion_matrix_22 = CrossTable(table(test_data$diagnosis, pred_22)) ## creating a confusion matrix table
+accuracy_22 = sum(diag(confusion_matrix_22)) / sum(confusion_matrix_22)
+
+
+print(table_confusion_matrix_22)
+print(confusion_matrix_22)
+print(accuracy_22)
+
+```
+
+## Statistical tests - Anova test / t-test
+
+```{r}
+library(ggplot2)
+library(ggpubr)
+library(tidyverse)
+library(broom)
+install.packages('AICcmodavg')
+library(AICcmodavg)
+```
+
+```{r}
+head(shortened_data)
+
+chr_shortened_data= mutate(shortened_data, diagnosis = ifelse(diagnosis == '1', 'M', 'B')) # M = 1, B = 0
+head(chr_shortened_data)
+```
+
+## Analyzing what the key differences are between malignant and benign cells 
+
+## Testing if radius_worst is different by diagnosis
+
+```{r}
+radiusworst_t_test <- t.test(radius_worst ~ diagnosis, data = chr_shortened_data)
+print(radiusworst_t_test)
+```
+
+## WHAT DOES THE RESULT MEAN?
+
+Here is the interpretation of output - **Test Type**:
+
+-   **Welch Two Sample t-test**: This is a variant of the two-sample t-test that does not assume equal variances between the two groups. It's often used when comparing means of two groups with potentially unequal variances.
+
+-   **Test Statistic (t)**: **t = -24.514**: The t-statistic measures how many standard deviations the sample mean difference is from the null hypothesis mean difference (which is 0). A very large magnitude of the t-value indicates a strong difference between the groups.
+
+-   **Degrees of Freedom (df)**: **df = 289.87**: The degrees of freedom used in the Welch test, which accounts for the sample sizes and variances of the two groups. This value is used to determine the critical value from the t-distribution.
+
+-   **P-value**: **p-value \< 2.2e-16**: The p-value is the probability of observing a test statistic as extreme as, or more extreme than, the observed value under the null hypothesis. Here, the p-value is extremely small, indicating that the observed difference between the groups is statistically significant.
+
+-   **95 Percent Confidence Interval**: **95 percent confidence interval: -7.048329 -6.000654**: This interval gives a range in which the true difference in means between the two groups is likely to fall with 95% confidence. Since the entire interval is below zero, it suggests that group M has a significantly higher mean value than group B.
+
+    **Interpretation**
+
+    1.  **Significant Difference**:
+
+        The very small p-value (\< 2.2e-16) indicates that there is a statistically significant difference between the means of group B and group M. The result is far beyond typical significance levels (e.g., 0.05), so we reject the null hypothesis that the means are equal.
+
+    2.  **Direction of Difference**:
+
+        The negative t-value and the confidence interval suggest that group M has a higher mean value for radius_worst compared to group B. Specifically, the confidence interval shows that the mean of group M is between 6.00 and 7.05 units higher than that of group B.
+
+    3.  **Magnitude of Difference**:
+
+        The mean values indicate that, on average, group M has a radius_worst measurement of about 19.90, while group B has a mean of about 13.38. The difference of approximately 6.52 units is statistically significant.
+
+        In summary, the t-test results show a significant difference between the means of radius_worst for the two groups, with group M having a higher mean value compared to group B. The results suggest a strong and statistically significant effect.
+
+## Doing a T-test for all the variables
+
+```{r}
+##Here testData[-1] refers to all columns of testData but the first one (which contains the labels). Negative indexing is used for excluding data.## 
+## here the first column is disgnosis 
+lapply(shortened_data[-1], function(x) t.test(x ~ shortened_data$diagnosis))
+```
+
+\*\* **1. T-Test**
+
+-   **Purpose**: Compares the means of two groups to determine if they are significantly different from each other.
+
+-   **ANOVA**
+
+    **Purpose**: Compares the means of three or more groups to determine if there are significant differences among them.
+
+    **Example**: Comparing radius_mean among multiple categories if you had more than two diagnosis types or another grouping factor.
+
+    **Applying These Tests to the Breast Cancer Dataset**
+
+    Given your dataset, which contains tumor characteristics and a diagnosis indicator (diagnosis), here's how you would use both tests:
+
+    1.  **T-Test for Comparing Two Groups**If you want to compare the means of a particular feature (e.g., radius_mean) between two groups (malignant and benign):
+
+        \# Independent Samples T-Test
+
+    2.  t_test_result \<- t.test(radius_mean \~ diagnosis, data = data)
+
+    3.  print(t_test_result)
+
+    4.  **Interpretation**:
+
+    5.  **Null Hypothesis (H0)**: The mean radius_mean is the same for malignant and benign tumors
+
+    6.  **Alternative Hypothesis (H1)**: The mean radius_mean is different between malignant and benign tumors.
+
+    7.  **p-value**: Indicates whether the difference in means is statistically significant.
+
+        **ANOVA for Comparing More Than Two Groups**
+
+        If you had more than two groups (e.g., if you wanted to compare radius_mean across different types of tumors or additional categories), you would use ANOVA. However, in your case, if you only have two groups (M and B), a t-test is appropriate.
