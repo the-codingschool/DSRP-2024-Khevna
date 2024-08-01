@@ -70,7 +70,7 @@ library(nnet)
 library(glmnet)
 library(gganimate)
 library(gifski)
-library(png)  
+library(png)
 ```
 
 ### Import Dataset
@@ -85,6 +85,12 @@ data <- read.csv("../data/breast_cancer_classification_data.csv")
 ```{r}
 data <- data[,c(-1,-33)]
 ```
+
+```{r}
+nearZeroVar(data)
+```
+
+The nearZeroVar shows us that we don't have to remove any variables with little to no variation.
 
 ```{r}
 head(data)
