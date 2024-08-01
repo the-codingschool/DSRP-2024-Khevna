@@ -36,20 +36,14 @@ library(psych)
 ```{r}
 data = read.csv("/Users/labibawajihasiddiquei/Downloads/data.csv")
 head(data)
-```
-
-```{r}
 num_data = select(data, 2:32)
 num_data = mutate(num_data, diagnosis = ifelse(diagnosis == 'M', 1, 0)) # M = 1, B = 0
 head(num_data)
-```
-
-## Cleaned_data = outliers taken out Diagnosis = M/B used for KNN
-
-```{r}
 cleaned_data = select(data, 2:32)
 head(cleaned_data)
 ```
+
+## Cleaned_data = outliers taken out Diagnosis = M/B used for KNN
 
 ## Taking out Outliers and replacing it with median using mutate and ifelse
 
@@ -86,19 +80,35 @@ cleaned_data = mutate(cleaned_data, compactness_worst = ifelse(compactness_worst
 cleaned_data = mutate(cleaned_data, concavity_worst = ifelse(concavity_worst > 0.7855 , median(concavity_worst), concavity_worst))
 cleaned_data = mutate(cleaned_data, symmetry_worst = ifelse(symmetry_worst >  0.3179 , median(symmetry_worst), symmetry_worst))
 cleaned_data = mutate(cleaned_data, fractal_dimension_worst = ifelse(fractal_dimension_worst >  0.12301 , median(fractal_dimension_worst), fractal_dimension_worst))
+
+cleaned_num_data = select(cleaned_data, 1:31)
+cleaned_num_data = mutate(cleaned_num_data, diagnosis = ifelse(diagnosis == 'M', 1, 0)) # M = 1, B = 0
+head(cleaned_num_data)
+
 ```
 
 ## Cleaned_num_data = NO outliers Present ; Diagnosis = 1/0
 
-```{r}
-cleaned_num_data = select(cleaned_data, 1:31)
-cleaned_num_data = mutate(cleaned_num_data, diagnosis = ifelse(diagnosis == 'M', 1, 0)) # M = 1, B = 0
-head(cleaned_num_data)
-```
-
 ## Visualizing the numerical data before and after replacing Outliers
 
 The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+
+numericalData = select(data,c("radius_mean","texture_mean","perimeter_mean",
+"area_mean","smoothness_mean","compactness_mean",
+"concavity_mean","concave.points_mean","symmetry_mean",
+"fractal_dimension_mean","radius_se","texture_se","perimeter_se",     "area_se","smoothness_se","compactness_se","concavity_se",        "concave.points_se","symmetry_se","fractal_dimension_se",          "radius_worst","texture_worst","perimeter_worst","area_worst",         "smoothness_worst","compactness_worst","concavity_worst",         "concave.points_worst","symmetry_worst","fractal_dimension_worst")
+
+for(var in numericalData){
+  boxplot = boxplot(numericalData$var,
+        main = "Boxplot: Checking for Outliers in radius_mean", 
+        ylab='Scale',
+        las = 2 # Rotate x-axis labels for better readability
+        )
+  plot(boxplot)}
+```
+
 
 ```{r}
 
@@ -969,7 +979,7 @@ model.matrix(~0+., data=shortened_data) %>%
   ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2) + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(angle = 90, hjust = 1, size = 6))
 ```
 
-## Making a KNN Model - Predicting of a cell is cancerous or not 
+## Making a KNN Model - Predicting of a cell is cancerous or not
 
 ```{r}
 library(caTools)
@@ -1101,7 +1111,7 @@ chr_shortened_data= mutate(shortened_data, diagnosis = ifelse(diagnosis == '1', 
 head(chr_shortened_data)
 ```
 
-## Analyzing what the key differences are between malignant and benign cells 
+## Analyzing what the key differences are between malignant and benign cells
 
 ## Testing if radius_worst is different by diagnosis
 
@@ -1181,3 +1191,98 @@ lapply(shortened_data[-1], function(x) t.test(x ~ shortened_data$diagnosis))
         **ANOVA for Comparing More Than Two Groups**
 
         If you had more than two groups (e.g., if you wanted to compare radius_mean across different types of tumors or additional categories), you would use ANOVA. However, in your case, if you only have two groups (M and B), a t-test is appropriate.
+        
+## Scatter Plot for Concave Points ##
+
+```{r}
+#column_names <- colnames(shortened_data)
+#column_names
+
+## worst 
+for(var in shortened_data){
+  lineplot_concave.points_worst = ggplot(data = shortened_data, aes(x = var, y = concave.points_worst)) +
+  geom_point() +
+  labs(title = "Line Plot: Looking for linear relationship for a possible LR model",
+       x = var,
+       y = "concave.points_worst") 
+  plot(lineplot_concave.points_worst)}
+## mean 
+for(var in shortened_data){
+  lineplot_concave.points_mean = ggplot(data = shortened_data, aes(x = var, y = concave.points_mean)) +
+  geom_point() +
+  labs(title = "Line Plot: Looking for linear relationship for a possible LR model",
+       x = var,
+       y = "concave.points_mean") 
+  plot(lineplot_concave.points_mean)}
+
+names(shortened_data)
+```
+
+```{r}
+names(shortened_data)
+```
+
+## Scatter Plot for Concavity ##
+
+```{r}
+
+##worst 
+for(var in shortened_data){
+  lineplot_concavity_worst= ggplot(data = shortened_data, aes(x = var, y = concavity_worst)) +
+  geom_point() +
+  labs(title = "Line Plot: Looking for linear relationship for a possible LR model",
+       x = var,
+       y = "concavity_worst") 
+  plot(lineplot_concavity_worst)}
+
+##mean
+for(var in shortened_data){
+  lineplot_concavity_mean = ggplot(data = shortened_data, aes(x = var, y = concavity_mean)) +
+  geom_point() +
+  labs(title = "Line Plot: Looking for linear relationship for a possible LR model",
+       x = var,
+       y = "concavity_mean") 
+  plot(lineplot_concavity_mean)}
+
+
+```
+
+## Scatter Plot for Compactness ##
+
+```{r}
+
+## Worst 
+
+for(var in shortened_data){
+  lineplot_compactness_worst = ggplot(data = shortened_data, aes(x = var, y = compactness_worst)) +
+  geom_point() +
+  labs(title = "Line Plot: Looking for linear relationship for a possible LR model",
+       x = var,
+       y = "compactness_worst") 
+  plot(lineplot_compactness_worst)}
+
+## Mean 
+
+for(var in shortened_data){
+  lineplot_compactness_mean = ggplot(data = shortened_data, aes(x = var, y = compactness_mean)) +
+  geom_point() +
+  labs(title = "Line Plot: Looking for linear relationship for a possible LR model",
+       x = var,
+       y = "compactness_mean") 
+  plot(lineplot_compactness_mean)}
+```
+
+```{r}
+column_names <- colnames(shortened_data)
+column_names
+
+for(var in column_names){
+  if (var != "concave.points_worst") {
+  scatterplot = ggplot(data = data, aes_string(x = var, y = "concave.points_worst")) +
+    geom_point() +
+    labs(title = "Line Plot: Looking for linear relationship for a possible LR model",
+         x = var,
+         y = "concave.points_worst") 
+  plot(scatterplot)}}
+```
+
