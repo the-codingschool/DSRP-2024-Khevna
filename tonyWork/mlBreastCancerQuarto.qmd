@@ -45,14 +45,18 @@ library(vroom)
 library(fastDummies)
 library(caTools)
 library(class)
+library(naivebayes)
 library(paletteer)
 library(randomForest)
 library(shinyjs)
 library(ggcorrplot)
 library(utils)
+library(pROC)
+library(class)
 library(reshape2)
 library(gridExtra)
 library(utils)
+library(FNN)
 library(mlbench)
 library(caret)
 library(ggbiplot)
@@ -2133,81 +2137,4 @@ anim_save("model_accuracy_comparison_cumulative_standard.gif", anim)
 
 ```{r}
 anim
-```
-
-TTest between metrics for non-normalized
-
-```{r}
-dataset <- final_accuracies
-metrics <- unique(dataset$Metric)
-pval_matrix <- matrix(NA,nrow=length(metrics),ncol=length(metrics),dimnames=list(metrics,metrics))
-for(i in 1:length(metrics)){
-  for(j in 1:length(metrics)) {
-    arm1 <- dataset %>% filter(Metric == metrics[[i]]) %>% pull(Accuracy)
-    arm2 <- dataset %>% filter(Metric == metrics[[j]]) %>% pull(Accuracy)
-    ttest <- t.test(arm1,arm2)
-    pval_matrix[i,j] = ttest$p.value
-  }
-}
-
-pval_df <- as.data.frame(pval_matrix)
-pval_df <- pval_df %>% select(everything())
-pval_df < 0.05 # True means significant
-
-```
-
-```{r}
-dataset <- final_accuracies
-models <- unique(dataset$Model)
-pval_matrix <- matrix(NA,nrow=length(models),ncol=length(models),dimnames=list(models,models))
-for(i in 1:length(models)){
-  for(j in 1:length(models)) {
-    arm1 <- dataset %>% filter(Model == models[[i]]) %>% pull(Accuracy)
-    arm2 <- dataset %>% filter(Model == models[[j]]) %>% pull(Accuracy)
-    ttest <- t.test(arm1,arm2)
-    pval_matrix[i,j] = ttest$p.value
-  }
-}
-
-pval_df <- as.data.frame(pval_matrix)
-pval_df <- pval_df %>% select(everything())
-pval_df <0.05 # True means significant
-```
-
-Do the same for standard
-
-```{r}
-dataset <- final_accuracies_standard
-metrics <- unique(dataset$Metric)
-pval_matrix <- matrix(NA,nrow=length(metrics),ncol=length(metrics),dimnames=list(metrics,metrics))
-for(i in 1:length(metrics)){
-  for(j in 1:length(metrics)) {
-    arm1 <- dataset %>% filter(Metric == metrics[[i]]) %>% pull(Accuracy)
-    arm2 <- dataset %>% filter(Metric == metrics[[j]]) %>% pull(Accuracy)
-    ttest <- t.test(arm1,arm2)
-    pval_matrix[i,j] = ttest$p.value
-  }
-}
-
-pval_df <- as.data.frame(pval_matrix)
-pval_df <- pval_df %>% select(everything())
-pval_df < 0.05 # True means significant
-```
-
-```{r}
-dataset <- final_accuracies_standard
-models <- unique(dataset$Model)
-pval_matrix <- matrix(NA,nrow=length(models),ncol=length(models),dimnames=list(models,models))
-for(i in 1:length(models)){
-  for(j in 1:length(models)) {
-    arm1 <- dataset %>% filter(Model == models[[i]]) %>% pull(Accuracy)
-    arm2 <- dataset %>% filter(Model == models[[j]]) %>% pull(Accuracy)
-    ttest <- t.test(arm1,arm2)
-    pval_matrix[i,j] = ttest$p.value
-  }
-}
-
-pval_df <- as.data.frame(pval_matrix)
-pval_df <- pval_df %>% select(everything())
-pval_df <0.05 # True means significant
 ```
