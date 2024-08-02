@@ -1,0 +1,48 @@
+---
+title: "Malignant cells are larger than Benign Cells, Providing evidence that size is an indicator of Cancer"
+author: "Alina Ahmed"
+format: html
+editor: visual
+---
+
+```{r}
+data = read.csv("/Users/alinaahmed/Documents/DRSP Lung Cancer Research/Alina A. Project 2024/Data Coding for Breast Cancer/breast_cancer_classification_data.csv")
+head(data)
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+col_na_count <- colSums(is.na(data))
+print(col_na_count)
+# Remove the 'X' column
+data <- data %>%
+  select(-X)
+
+data = clean_names(data)
+names(data)
+
+#569 NA values found
+nrow(data)
+
+data = na.omit(data)
+str(data) #'data.frame':	0 obs. of  33 variables:
+nrow(data)
+
+
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(janitor)
+library(tidyr)
+library(titanic)
+```
+
+```{r}
+
+```
