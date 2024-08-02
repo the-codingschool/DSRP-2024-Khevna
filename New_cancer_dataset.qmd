@@ -4,7 +4,7 @@ format: html
 editor: visual
 ---
 
-## Quarto
+## Decoding Breast Cancer Cells: What are their most important features? What makes those features different from a regular cell? And, how well can we use these differences to predict whether a cell is malignant or Benign?
 
 Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
 
@@ -35,12 +35,12 @@ library(psych)
 
 ```{r}
 data = read.csv("/Users/labibawajihasiddiquei/Downloads/data.csv")
-head(data)
+#head(data)
 num_data = select(data, 2:32)
 num_data = mutate(num_data, diagnosis = ifelse(diagnosis == 'M', 1, 0)) # M = 1, B = 0
-head(num_data)
+#head(num_data)
 cleaned_data = select(data, 2:32)
-head(cleaned_data)
+#head(cleaned_data)
 ```
 
 ## Cleaned_data = outliers taken out Diagnosis = M/B used for KNN
@@ -95,20 +95,19 @@ The `echo: false` option disables the printing of code (only output is displayed
 
 ```{r}
 
-numericalData = select(data,c("radius_mean","texture_mean","perimeter_mean",
-"area_mean","smoothness_mean","compactness_mean",
-"concavity_mean","concave.points_mean","symmetry_mean",
-"fractal_dimension_mean","radius_se","texture_se","perimeter_se",     "area_se","smoothness_se","compactness_se","concavity_se",        "concave.points_se","symmetry_se","fractal_dimension_se",          "radius_worst","texture_worst","perimeter_worst","area_worst",         "smoothness_worst","compactness_worst","concavity_worst",         "concave.points_worst","symmetry_worst","fractal_dimension_worst")
+#numericalData = select(data,c("radius_mean","texture_mean","perimeter_mean",
+#"area_mean","smoothness_mean","compactness_mean",
+#"concavity_mean","concave.points_mean","symmetry_mean",
+#"fractal_dimension_mean","radius_se","texture_se","perimeter_se",     "area_se","smoothness_se","compactness_se","concavity_se",        "concave.points_se","symmetry_se","fractal_dimension_se",          "radius_worst","texture_worst","perimeter_worst","area_worst",         "smoothness_worst","compactness_worst","concavity_worst",         "concave.points_worst","symmetry_worst","fractal_dimension_worst")
 
-for(var in numericalData){
-  boxplot = boxplot(numericalData$var,
-        main = "Boxplot: Checking for Outliers in radius_mean", 
-        ylab='Scale',
-        las = 2 # Rotate x-axis labels for better readability
-        )
-  plot(boxplot)}
+#for(var in numericalData){
+  #boxplot = boxplot(numericalData$var,
+        #main = "Boxplot: Checking for Outliers in radius_mean", 
+        #ylab='Scale',
+        #las = 2 # Rotate x-axis labels for better readability
+        #)
+ # plot(boxplot)}
 ```
-
 
 ```{r}
 
@@ -134,7 +133,7 @@ boxplot(cleaned_data$radius_mean,
 
 summary(cleaned_data$radius_mean)
                     
-                                                         
+                                       ## add colors                   
 ```
 
 ```{r}
@@ -877,6 +876,13 @@ head(cleaned_normalized_data)
 ## Plotting correlations of cleaned data
 
 ```{r}
+library(ggcorrplot
+        )
+library(psych
+        )
+```
+
+```{r}
 
 ##clean data
 
@@ -939,6 +945,8 @@ clean.data.pca$loadings[, 1:2]
 ```
 
 ```{r}
+library(FactoMineR)
+library(factoextra)
 fviz_eig(data.pca, addlabels = TRUE)
 fviz_eig(clean.data.pca, addlabels = TRUE)
 ```
@@ -958,11 +966,93 @@ fviz_pca_var(clean.data.pca, col.var = "cos2",
              repel = TRUE)
 ```
 
+## Why just two components - because it explains most of the variability and easier to work with
+
+## Working with least correlated data
+
+```{r}
+lowcor_shortened_data = select(cleaned_num_data, c("diagnosis", "area_se", "radius_se", "perimeter_se", "texture_mean", "texture_worst", "symmetry_worst", "texture_se", "symmetry_se", "smoothness_se", "symmetry_mean", "concave.points_se", "concavity_se", "smoothness_worst", "compactness_se", "fractal_dimension_worst", "smoothness_mean", "fractal_dimension_se"))
+
+head(lowcor_shortened_data)
+```
+
+**Plotting the data**
+
+```{r}
+corPlot(lowcor_shortened_data, cex = .5, xsrt = 90, ysrt = 90, cex.axis = .75, cex.yaxis = .5, stars =TRUE)
+
+correlation_matrix <- cor(lowcor_shortened_data, use = "everything")
+ggcorrplot(correlation_matrix) + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(angle = 90, hjust = 1, size = 6))
+
+model.matrix(~0+., data=lowcor_shortened_data) %>% 
+  cor(use="everything") %>% 
+  ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2) + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(angle = 90, hjust = 1, size = 6))
+
+```
+
+**KNN Model**
+
+```{r}
+
+set.seed(42)
+split_lowcor = sample.split(lowcor_shortened_data$diagnosis, SplitRatio = 0.8)
+
+train_data_lowcor = subset(lowcor_shortened_data, split == TRUE)
+test_data_lowcor = subset(lowcor_shortened_data, split == FALSE)
+
+numbers_lowcor <- c(1:100)
+results_lowcor <- numeric()
+for (num in numbers_lowcor){
+  knn_model_lowcor = knn(train = train_data_lowcor[, c("area_se", "radius_se", "perimeter_se", "texture_mean", "texture_worst", "symmetry_worst", "texture_se", "symmetry_se", "smoothness_se", "symmetry_mean", "concave.points_se", "concavity_se", "smoothness_worst", "compactness_se", "fractal_dimension_worst", "smoothness_mean", "fractal_dimension_se")], 
+                test = test_data_lowcor[, c( "area_se", "radius_se", "perimeter_se", "texture_mean", "texture_worst", "symmetry_worst", "texture_se", "symmetry_se", "smoothness_se", "symmetry_mean", "concave.points_se", "concavity_se", "smoothness_worst", "compactness_se", "fractal_dimension_worst", "smoothness_mean", "fractal_dimension_se")], 
+                cl = train_data_lowcor$diagnosis, 
+                k = num)
+  pred_lowcor = knn_model_lowcor
+  confusion_matrix_lowcor = table(test_data_lowcor$diagnosis, pred_lowcor)
+  accuracy_lowcor = sum(diag(confusion_matrix_lowcor)) / sum(confusion_matrix_lowcor)
+  results_lowcor <- c(results_lowcor, accuracy_lowcor)
+  #print(accuracy)
+  }
+```
+
+```{r}
+results_df_lowcor = data.frame(results_lowcor, Number_of_Neighbours = 1:100)
+head(results_df_lowcor, 30)
+```
+
+```{r}
+ggplot(data = results_df_lowcor, aes( x = Number_of_Neighbours, y = results_lowcor)) +
+  geom_line() +
+  labs(title = "Error", 
+       x = "# Neighbours",
+       y = "Accuracy") 
+```
+
+```{r}
+filtered_results_lowcor = filter(results_df_lowcor, Number_of_Neighbours < 30, Number_of_Neighbours > 20)
+```
+
+```{r}
+ggplot(data = filtered_results_lowcor, aes( x = Number_of_Neighbours, y = results_lowcor)) +
+  geom_line() +
+  labs(title = "Error", 
+       x = "# Neighbours",
+       y = "Accuracy") 
+```
+
+**25 and 28 are optimal numbers according to the table** 
+**highest accuracy 85**
+
+## Working with highly correlated data ##
+
+
 ```{r}
 
 shortened_data = select(cleaned_num_data, c("diagnosis", "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_worst", "concavity_worst"))
 head(shortened_data)
 ```
+
+## Note: Should the data be corelated? because aren't PCA components inherently unrelated?
 
 ```{r}
 corPlot(shortened_data, cex = .5, xsrt = 90, ysrt = 90, cex.axis = .75, cex.yaxis = .5, stars =TRUE)
@@ -979,7 +1069,7 @@ model.matrix(~0+., data=shortened_data) %>%
   ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2) + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(angle = 90, hjust = 1, size = 6))
 ```
 
-## Making a KNN Model - Predicting of a cell is cancerous or not
+**Making a KNN Model - Predicting of a cell is cancerous or not**
 
 ```{r}
 library(caTools)
@@ -1012,7 +1102,7 @@ for (num in numbers){
   confusion_matrix = table(test_data$diagnosis, pred)
   accuracy = sum(diag(confusion_matrix)) / sum(confusion_matrix)
   results <- c(results, accuracy)
-  #print(accuracy)
+  print(accuracy)
   }
 #print(accuracy)
 #print(results)
@@ -1043,9 +1133,9 @@ ggplot(data = filtered_results, aes( x = Number_of_Neighbours, y = results)) +
        y = "Accuracy") 
 ```
 
-## The optimal Number of Neighbour is 20 and 22
+**The optimal Number of Neighbour is 20 and 22**
 
-## KNN model with 20 Neighbours
+**KNN model with 20 Neighbours**
 
 ```{r}
 knn_model_20 = knn(train = train_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean",   "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se")], 
@@ -1064,14 +1154,12 @@ library(gmodels)
 confusion_matrix_20 = table(test_data$diagnosis, pred_20) ## actual confusion matrix ##
 table_confusion_matrix_20 = CrossTable(table(test_data$diagnosis, pred_20)) ## creating a confusion matrix table
 accuracy_20 = sum(diag(confusion_matrix_20)) / sum(confusion_matrix_20)
-
-
 print(table_confusion_matrix_20)
 print(confusion_matrix_20)
 print(accuracy_20)
 ```
 
-## KNN model with 22 Neighbours
+**KNN model with 22 Neighbours**
 
 ```{r}
 
@@ -1092,6 +1180,68 @@ print(confusion_matrix_22)
 print(accuracy_22)
 
 ```
+
+## Making a KNN model with all the features ##
+
+```{r}
+set.seed(42)
+split_all = sample.split(cleaned_data$diagnosis, SplitRatio = 0.8)
+train_data_all = subset(cleaned_data, split == TRUE)
+test_data_all = subset(cleaned_data, split == FALSE)
+```
+
+```{r}
+names(cleaned_data)
+```
+
+
+```{r}
+numbers_all <- c(1:100)
+results_all <- numeric()
+for (num in numbers_all){
+  knn_model_all = knn(train = train_data_all[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean",   "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se", "area_se", "radius_se", "perimeter_se", "texture_mean", "texture_worst", "symmetry_worst", "texture_se", "symmetry_se", "smoothness_se", "symmetry_mean", "concave.points_se", "concavity_se", "smoothness_worst", "compactness_se", "fractal_dimension_worst", "smoothness_mean", "fractal_dimension_se")], 
+                test = test_data_all[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se", "area_se", "radius_se", "perimeter_se", "texture_mean", "texture_worst", "symmetry_worst", "texture_se", "symmetry_se", "smoothness_se", "symmetry_mean", "concave.points_se", "concavity_se", "smoothness_worst", "compactness_se", "fractal_dimension_worst", "smoothness_mean", "fractal_dimension_se")], 
+                cl = train_data_all$diagnosis, 
+                k = num)
+  pred_all = knn_model_all
+  confusion_matrix_all = table(test_data_all$diagnosis, pred_all)
+  accuracy_all = sum(diag(confusion_matrix_all)) / sum(confusion_matrix_all)
+  results_all <- c(results_all, accuracy_all)
+  #print(accuracy_all)
+  }
+```
+
+```{r}
+results_df_all = data.frame(results_all, Number_of_Neighbours = 1:100)
+head(results_df_all, 10)
+```
+
+```{r}
+ggplot(data = results_df_all, aes( x = Number_of_Neighbours, y = results_all)) +
+  geom_line() +
+  labs(title = "Error", 
+       x = "# Neighbours",
+       y = "Accuracy") 
+```
+
+```{r}
+filtered_results_all = filter(results_df_all, Number_of_Neighbours < 25, Number_of_Neighbours > 18.5)
+print(filtered_results_all)
+```
+
+```{r}
+ggplot(data = filtered_results_all, aes( x = Number_of_Neighbours, y = results_all)) +
+  geom_line() +
+  labs(title = "Error", 
+       x = "# Neighbours",
+       y = "Accuracy") 
+```
+
+## Creating a KNN model with all features only yeilds an accuracy of highest 0.9292035	at k = 20 - 23 (inclu). 
+
+## Creating a KNN model with highly corelated features yeilds an accuracy of 0.9292035 at k = 20 and 22. 
+
+## We can therefore conculde the least correlated variables are not important to the knn model. ##
 
 ## Statistical tests - Anova test / t-test
 
@@ -1191,85 +1341,84 @@ lapply(shortened_data[-1], function(x) t.test(x ~ shortened_data$diagnosis))
         **ANOVA for Comparing More Than Two Groups**
 
         If you had more than two groups (e.g., if you wanted to compare radius_mean across different types of tumors or additional categories), you would use ANOVA. However, in your case, if you only have two groups (M and B), a t-test is appropriate.
-        
-## Scatter Plot for Concave Points ##
+
+## Scatter Plot for Concave Points
 
 ```{r}
-#column_names <- colnames(shortened_data)
-#column_names
+column_names <- colnames(shortened_data)
+column_names
 
-## worst 
-for(var in shortened_data){
-  lineplot_concave.points_worst = ggplot(data = shortened_data, aes(x = var, y = concave.points_worst)) +
-  geom_point() +
-  labs(title = "Line Plot: Looking for linear relationship for a possible LR model",
-       x = var,
-       y = "concave.points_worst") 
-  plot(lineplot_concave.points_worst)}
-## mean 
-for(var in shortened_data){
-  lineplot_concave.points_mean = ggplot(data = shortened_data, aes(x = var, y = concave.points_mean)) +
-  geom_point() +
-  labs(title = "Line Plot: Looking for linear relationship for a possible LR model",
-       x = var,
-       y = "concave.points_mean") 
-  plot(lineplot_concave.points_mean)}
+for(var in column_names){
+  if (var != "concave.points_worst") {
+  scatterplot_concave.points_worst = ggplot(data = chr_shortened_data, aes_string(x = var, y = "concave.points_worst")) +
+    geom_point(aes(color = diagnosis)) +
+    labs(title = "ScatterPlot: Visualizing differnces between malignant and benign cells",
+         x = var,
+         y = "concave.points_worst") 
+  plot(scatterplot_concave.points_worst)}}
 
-names(shortened_data)
+for(var in column_names){
+  if (var != "concave.points_mean") {
+  scatterplot_concave.points_mean = ggplot(data = chr_shortened_data, aes_string(x = var, y = "concave.points_mean")) +
+    geom_point(aes(color = diagnosis)) +
+    labs(title = "ScatterPlot: Visualizing differnces between malignant and benign cells",
+         x = var,
+         y = "concave.points_mean") 
+  plot(scatterplot_concave.points_mean)}}
 ```
 
+## Scatter Plot for Concavity
+
 ```{r}
-names(shortened_data)
+
+column_names <- colnames(shortened_data)
+column_names
+
+for(var in column_names){
+  if (var != "concavity_worst") {
+  scatterplot_concavity_worst = ggplot(data = chr_shortened_data, aes_string(x = var, y = "concavity_worst")) +
+    geom_point(aes(color = diagnosis)) +
+    labs(title = "ScatterPlot: Visualizing differnces between malignant and benign cells",
+         x = var,
+         y = "concavity_worst") 
+  plot(scatterplot_concavity_worst)}}
+
+for(var in column_names){
+  if (var != "concavity_mean") {
+  scatterplot_concavity_mean = ggplot(data = chr_shortened_data, aes_string(x = var, y = "concavity_mean")) +
+    geom_point(aes(color = diagnosis)) +
+    labs(title = "ScatterPlot: Visualizing differnces between malignant and benign cells",
+         x = var,
+         y = "concavity_mean") 
+  plot(scatterplot_concavity_mean)}}
+
+
 ```
 
-## Scatter Plot for Concavity ##
+## Scatter Plot for Compactness
 
 ```{r}
 
-##worst 
-for(var in shortened_data){
-  lineplot_concavity_worst= ggplot(data = shortened_data, aes(x = var, y = concavity_worst)) +
-  geom_point() +
-  labs(title = "Line Plot: Looking for linear relationship for a possible LR model",
-       x = var,
-       y = "concavity_worst") 
-  plot(lineplot_concavity_worst)}
+column_names <- colnames(shortened_data)
+column_names
 
-##mean
-for(var in shortened_data){
-  lineplot_concavity_mean = ggplot(data = shortened_data, aes(x = var, y = concavity_mean)) +
-  geom_point() +
-  labs(title = "Line Plot: Looking for linear relationship for a possible LR model",
-       x = var,
-       y = "concavity_mean") 
-  plot(lineplot_concavity_mean)}
+for(var in column_names){
+  if (var != "compactness_worst") {
+  scatterplot_compactness_worst = ggplot(data = chr_shortened_data, aes_string(x = var, y = "compactness_worst")) +
+    geom_point(aes(color = diagnosis)) +
+    labs(title = "ScatterPlot: Visualizing differnces between malignant and benign cells",
+         x = var,
+         y = "compactness_worst") 
+  plot(scatterplot_compactness_worst)}}
 
-
-```
-
-## Scatter Plot for Compactness ##
-
-```{r}
-
-## Worst 
-
-for(var in shortened_data){
-  lineplot_compactness_worst = ggplot(data = shortened_data, aes(x = var, y = compactness_worst)) +
-  geom_point() +
-  labs(title = "Line Plot: Looking for linear relationship for a possible LR model",
-       x = var,
-       y = "compactness_worst") 
-  plot(lineplot_compactness_worst)}
-
-## Mean 
-
-for(var in shortened_data){
-  lineplot_compactness_mean = ggplot(data = shortened_data, aes(x = var, y = compactness_mean)) +
-  geom_point() +
-  labs(title = "Line Plot: Looking for linear relationship for a possible LR model",
-       x = var,
-       y = "compactness_mean") 
-  plot(lineplot_compactness_mean)}
+for(var in column_names){
+  if (var != "compactness_mean") {
+  scatterplot_compactness_mean = ggplot(data = chr_shortened_data, aes_string(x = var, y = "compactness_mean")) +
+    geom_point(aes(color = diagnosis)) +
+    labs(title = "ScatterPlot: Visualizing differnces between malignant and benign cells",
+         x = var,
+         y = "compactness_mean") 
+  plot(scatterplot_compactness_mean)}}
 ```
 
 ```{r}
@@ -1278,11 +1427,19 @@ column_names
 
 for(var in column_names){
   if (var != "concave.points_worst") {
-  scatterplot = ggplot(data = data, aes_string(x = var, y = "concave.points_worst")) +
-    geom_point() +
-    labs(title = "Line Plot: Looking for linear relationship for a possible LR model",
+  scatterplot_concave.points_worst = ggplot(data = chr_shortened_data, aes_string(x = var, y = "concave.points_worst")) +
+    geom_point(aes(color = diagnosis)) +
+    labs(title = "ScatterPlot: Visualizing differnces between malignant and benign cells",
          x = var,
          y = "concave.points_worst") 
-  plot(scatterplot)}}
-```
+  plot(scatterplot_concave.points_worst)}}
 
+for(var in column_names){
+  if (var != "concave.points_mean") {
+  scatterplot_concave.points_mean = ggplot(data = chr_shortened_data, aes_string(x = var, y = "concave.points_mean")) +
+    geom_point(aes(color = diagnosis)) +
+    labs(title = "ScatterPlot: Visualizing differnces between malignant and benign cells",
+         x = var,
+         y = "concave.points_mean") 
+  plot(scatterplot_concave.points_mean)}}
+```
