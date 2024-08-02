@@ -1,0 +1,747 @@
+---
+title: "bcFinal"
+author: "Tony Song"
+format: html
+editor: visual
+---
+
+## VIF
+
+```{r}
+library(psych)
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(shiny)
+library(shinythemes)
+library(tibble)
+library(vroom)
+library(fastDummies)
+library(caTools)
+library(class)
+library(naivebayes)
+library(paletteer)
+library(randomForest)
+library(shinyjs)
+library(ggcorrplot)
+library(utils)
+library(pROC)
+library(class)
+library(reshape2)
+library(gridExtra)
+library(utils)
+library(FNN)
+library(mlbench)
+library(caret)
+library(ggbiplot)
+library(devtools)
+library(varImp)
+library(e1071)
+library(adabag)
+library(rpart)
+library(gbm)
+library(nnet)
+library(glmnet)
+library(gganimate)
+library(gifski)
+library(png)
+library(GGally)
+library(mctest)
+library(car)
+```
+
+```{r}
+setwd("C:/Users/Tony/OneDrive/Documents/tonyR/DSRP-2024-Khevna/tonyWork")
+data <- read.csv("../data/breast_cancer_classification_data.csv")
+```
+
+Clean Data
+
+```{r}
+data <- data[,c(-1,-33)]
+```
+
+```{r}
+nearZeroVar(data)
+```
+
+The nearZeroVar shows us that we don't have to remove any variables with little to no variation.
+
+```{r}
+numerical_data <- data[,2:31]
+correlation <- cor(numerical_data,use = "complete.obs")
+ggcorrplot(correlation)
+```
+
+```{r}
+highlyCorrelated <- findCorrelation(cor(numerical_data), cutoff=0.9,names=TRUE)
+highlyCorrelated
+```
+
+By iterating through this list of highly correlated variables and using some logic, we can come up with the following: It's not the exact same but removes enough to leave none highly correlated.
+
+```{r}
+highlyCorrelated <- findCorrelation(cor(select(numerical_data,-c("concavity_mean","concave.points_mean","perimeter_worst","radius_mean","perimeter_mean","perimeter_se","area_worst","area_mean","area_se","texture_mean"))), cutoff=0.9,names=TRUE)
+highlyCorrelated
+```
+
+```{r}
+data <- data %>% select(-c("concavity_mean","concave.points_mean","perimeter_worst","radius_mean","perimeter_mean","perimeter_se","area_worst","area_mean","area_se","texture_mean"))
+```
+
+```{r}
+correlation <- cor(data[,-1],use = "complete.obs")
+ggcorrplot(correlation > 0.9) 
+```
+
+We should now normalize/standardize the data
+
+```{r}
+data <- cbind(data[1],as.data.frame(scale(data[,-1])))
+```
+
+We can now use this testing data on all of these different models
+
+```{r}
+set.seed(42)
+dataset <- data
+split <- sample.split(dataset$diagnosis,SplitRatio=0.7)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+training$diagnosis <- as.factor(training$diagnosis)
+testing$diagnosis <- as.factor(testing$diagnosis)
+
+rf_model <- randomForest(x = training[,-1],
+                         y = training$diagnosis, ntree=50)
+
+predictions <- predict(rf_model, newdata = testing[,-1])
+
+actuals <- testing$diagnosis
+
+confusion_matrix <- table(Predicted = predictions, Actual = actuals)
+
+accuracyrf1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+print("rf")
+print(confusion_matrix)
+
+
+knn_model <- knn(train = training[,-1], test=testing[,-1],cl=training$diagnosis, k=5)
+
+actuals <- testing$diagnosis
+
+confusion_matrix <- table(Predicted = knn_model, Actual = actuals)
+
+accuracyknn1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+print("knn")
+print(confusion_matrix)
+
+
+
+svm_model <- svm(diagnosis ~ ., data = training, kernel = "radial", cost = 1, scale = TRUE)
+
+predictions <- predict(svm_model, testing)
+confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
+
+accuracysvm1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+print("svm,")
+print(confusion_matrix)
+
+
+dt_model <- rpart(diagnosis ~ ., data = training, method = "class")
+predictions <- predict(dt_model, testing, type = "class")
+confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
+accuracydt1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+print("dt")
+print(confusion_matrix)
+
+
+
+nb_model <- naiveBayes(diagnosis ~ ., data = training)
+predictions <- predict(nb_model, testing)
+confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
+accuracynb1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+print("nb")
+print(confusion_matrix)
+
+
+
+
+lr_model <- glm(diagnosis ~ ., data = training, family = binomial)
+predictions_prob <- predict(lr_model, testing, type = "response")
+predictions <- ifelse(predictions_prob > 0.5, "M", "B")
+predictions <- factor(predictions, levels = levels(testing$diagnosis))
+
+confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
+accuracylr1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+print("lr")
+print(confusion_matrix)
+
+
+
+ab_model <- boosting(diagnosis ~ ., data = training, mfinal = 50)
+predictions <- predict(ab_model, newdata = testing)
+
+confusion_matrix <- table(Predicted = predictions$class, Actual = testing$diagnosis)
+accuracyab1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+print("ab")
+print(confusion_matrix)
+
+
+
+training1 <- training
+testing1 <- testing
+training1$diagnosis <- as.numeric(training1$diagnosis) - 1
+testing1$diagnosis <- as.numeric(testing1$diagnosis) - 1
+
+gb_model <- gbm(
+  formula = diagnosis ~ ., 
+  data = training1, 
+  distribution = "bernoulli", 
+  n.trees = 100, 
+  interaction.depth = 3, 
+  shrinkage = 0.01, 
+  n.minobsinnode = 10
+)
+
+
+predictions_prob <- predict(gb_model, newdata = testing1, n.trees = 100, type = "response")
+predictions <- ifelse(predictions_prob > 0.5, 1, 0) 
+
+predictions <- factor(predictions, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions, Actual = actual)
+accuracygb1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+print("gb")
+print(confusion_matrix)
+
+
+mlp_model <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,       
+  decay = 0.01,       
+  maxit = 200,        
+  linout = FALSE      
+)
+
+predictions_prob <- predict(mlp_model, newdata = testing1, type = "raw")
+predictions <- ifelse(predictions_prob > 0.5, 1, 0)  
+
+predictions <- factor(predictions, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions, Actual = actual)
+accuracymlp1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+print("mlp")
+print(confusion_matrix)
+
+model1 <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,          
+  decay = 0.01,      
+  maxit = 200,        
+  linout = FALSE      
+)
+
+predictions_prob1 <- predict(model1, newdata = testing1, type = "raw")
+testing1$pred1 <- ifelse(predictions_prob1 > 0.5, 1, 0)
+
+train_predictions_prob1 <- predict(model1, newdata = training1, type = "raw")
+training1$pred1 <- ifelse(train_predictions_prob1 > 0.5, 1, 0)
+
+model2 <- nnet(
+  diagnosis ~ . + pred1, 
+  data = training1, 
+  size = 10,        
+  decay = 0.01,       
+  maxit = 200,     
+  linout = FALSE      
+)
+
+predictions_prob2 <- predict(model2, newdata = testing1, type = "raw")
+predictions2 <- ifelse(predictions_prob2 > 0.5, 1, 0)
+
+predictions2 <- factor(predictions2, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions2, Actual = actual)
+accuracyncc1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+print("ncc")
+print(confusion_matrix)
+
+accuracies <- tibble(
+  Model = c("rf", "knn", "svm", "dt", "nb", "lr", "ab", "gb", "ncc", "mlp"),
+  Accuracy = c(round(accuracyrf1 * 100, 2), round(accuracyknn1 * 100, 2), round(accuracysvm1 * 100, 2),
+                    round(accuracydt1 * 100, 2), round(accuracynb1 * 100, 2), round(accuracylr1 * 100, 2),
+                    round(accuracyab1 * 100, 2), round(accuracygb1 * 100, 2), round(accuracyncc1 * 100, 2),
+                    round(accuracymlp1 * 100, 2)))
+accuracies
+```
+
+We should repeat this 200 times in order to make sure it isn't just from the seed.
+
+```{r}
+accuracy_dataframe <- tibble()
+for(seed in 1:200){
+  set.seed(seed)
+dataset <- data
+split <- sample.split(dataset$diagnosis,SplitRatio=0.7)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+training$diagnosis <- as.factor(training$diagnosis)
+testing$diagnosis <- as.factor(testing$diagnosis)
+
+rf_model <- randomForest(x = training[,-1],
+                         y = training$diagnosis, ntree=50)
+
+predictions <- predict(rf_model, newdata = testing[,-1])
+
+actuals <- testing$diagnosis
+
+confusion_matrix <- table(Predicted = predictions, Actual = actuals)
+
+accuracyrf1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+print("rf")
+print(confusion_matrix)
+
+
+knn_model <- knn(train = training[,-1], test=testing[,-1],cl=training$diagnosis, k=5)
+
+actuals <- testing$diagnosis
+
+confusion_matrix <- table(Predicted = knn_model, Actual = actuals)
+
+accuracyknn1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+print("knn")
+print(confusion_matrix)
+
+
+
+svm_model <- svm(diagnosis ~ ., data = training, kernel = "radial", cost = 1, scale = TRUE)
+
+predictions <- predict(svm_model, testing)
+confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
+
+accuracysvm1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+print("svm,")
+print(confusion_matrix)
+
+
+dt_model <- rpart(diagnosis ~ ., data = training, method = "class")
+predictions <- predict(dt_model, testing, type = "class")
+confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
+accuracydt1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+print("dt")
+print(confusion_matrix)
+
+
+
+nb_model <- naiveBayes(diagnosis ~ ., data = training)
+predictions <- predict(nb_model, testing)
+confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
+accuracynb1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+print("nb")
+print(confusion_matrix)
+
+
+
+
+lr_model <- glm(diagnosis ~ ., data = training, family = binomial)
+predictions_prob <- predict(lr_model, testing, type = "response")
+predictions <- ifelse(predictions_prob > 0.5, "M", "B")
+predictions <- factor(predictions, levels = levels(testing$diagnosis))
+
+confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
+accuracylr1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+print("lr")
+print(confusion_matrix)
+
+
+
+ab_model <- boosting(diagnosis ~ ., data = training, mfinal = 50)
+predictions <- predict(ab_model, newdata = testing)
+
+confusion_matrix <- table(Predicted = predictions$class, Actual = testing$diagnosis)
+accuracyab1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+print("ab")
+print(confusion_matrix)
+
+
+
+training1 <- training
+testing1 <- testing
+training1$diagnosis <- as.numeric(training1$diagnosis) - 1
+testing1$diagnosis <- as.numeric(testing1$diagnosis) - 1
+
+gb_model <- gbm(
+  formula = diagnosis ~ ., 
+  data = training1, 
+  distribution = "bernoulli", 
+  n.trees = 100, 
+  interaction.depth = 3, 
+  shrinkage = 0.01, 
+  n.minobsinnode = 10
+)
+
+
+predictions_prob <- predict(gb_model, newdata = testing1, n.trees = 100, type = "response")
+predictions <- ifelse(predictions_prob > 0.5, 1, 0) 
+
+predictions <- factor(predictions, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions, Actual = actual)
+accuracygb1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+print("gb")
+print(confusion_matrix)
+
+
+mlp_model <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,       
+  decay = 0.01,       
+  maxit = 200,        
+  linout = FALSE      
+)
+
+predictions_prob <- predict(mlp_model, newdata = testing1, type = "raw")
+predictions <- ifelse(predictions_prob > 0.5, 1, 0)  
+
+predictions <- factor(predictions, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions, Actual = actual)
+accuracymlp1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+print("mlp")
+print(confusion_matrix)
+
+model1 <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,          
+  decay = 0.01,      
+  maxit = 200,        
+  linout = FALSE      
+)
+
+predictions_prob1 <- predict(model1, newdata = testing1, type = "raw")
+testing1$pred1 <- ifelse(predictions_prob1 > 0.5, 1, 0)
+
+train_predictions_prob1 <- predict(model1, newdata = training1, type = "raw")
+training1$pred1 <- ifelse(train_predictions_prob1 > 0.5, 1, 0)
+
+model2 <- nnet(
+  diagnosis ~ . + pred1, 
+  data = training1, 
+  size = 10,        
+  decay = 0.01,       
+  maxit = 200,     
+  linout = FALSE      
+)
+
+predictions_prob2 <- predict(model2, newdata = testing1, type = "raw")
+predictions2 <- ifelse(predictions_prob2 > 0.5, 1, 0)
+
+predictions2 <- factor(predictions2, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions2, Actual = actual)
+accuracyncc1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+print("ncc")
+print(confusion_matrix)
+
+accuracies <- tibble(
+  Model = c("rf", "knn", "svm", "dt", "nb", "lr", "ab", "gb", "ncc", "mlp"),
+  Accuracy = c(round(accuracyrf1 * 100, 2), round(accuracyknn1 * 100, 2), round(accuracysvm1 * 100, 2),
+                    round(accuracydt1 * 100, 2), round(accuracynb1 * 100, 2), round(accuracylr1 * 100, 2),
+                    round(accuracyab1 * 100, 2), round(accuracygb1 * 100, 2), round(accuracyncc1 * 100, 2),
+                    round(accuracymlp1 * 100, 2)))
+accuracies$seed = seed
+
+accuracy_dataframe <- bind_rows(accuracy_dataframe,accuracies)
+
+}
+accuracy_dataframe
+```
+
+Let's find the best model after doing this
+
+```{r}
+ggplot(accuracy_dataframe,aes(x = reorder(Model, Accuracy, FUN = median),y=Accuracy,group=Model))+geom_boxplot()
+```
+
+We see we should use ncc
+
+```{r}
+set.seed(42)
+dataset <- data
+split <- sample.split(dataset$diagnosis,SplitRatio=0.7)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+training$diagnosis <- as.factor(training$diagnosis)
+testing$diagnosis <- as.factor(testing$diagnosis)
+
+training1 <- training
+testing1 <- testing
+training1$diagnosis <- as.numeric(training1$diagnosis) - 1
+testing1$diagnosis <- as.numeric(testing1$diagnosis) - 1
+
+model1 <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,          
+  decay = 0.01,      
+  maxit = 200,        
+  linout = FALSE
+)
+
+predictions_prob1 <- predict(model1, newdata = testing1, type = "raw")
+testing1$pred1 <- ifelse(predictions_prob1 > 0.5, 1, 0)
+
+train_predictions_prob1 <- predict(model1, newdata = training1, type = "raw")
+training1$pred1 <- ifelse(train_predictions_prob1 > 0.5, 1, 0)
+
+model2 <- nnet(
+  diagnosis ~ . + pred1, 
+  data = training1, 
+  size = 10,        
+  decay = 0.01,       
+  maxit = 200,     
+  linout = FALSE
+)
+
+predictions_prob2 <- predict(model2, newdata = testing1, type = "raw")
+predictions2 <- ifelse(predictions_prob2 > 0.5, 1, 0)
+
+predictions2 <- factor(predictions2, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+roc_curve2 <- roc(testing1$diagnosis, predictions_prob2)
+
+plot(roc_curve2, main = "ROC Curve", col = "red", lwd = 2)
+confusion_matrix <- table(Predicted = predictions2, Actual = actual)
+accuracyncc2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+print(confusion_matrix)
+cat("Accuracy: ", round(accuracyncc2 * 100, 2), "%\n")
+```
+
+We can now look at this best model with cross validation.
+
+```{r}
+train_control <- trainControl(
+  method = "cv",
+  number = 10,   
+  verboseIter = FALSE  
+)
+```
+
+```{r}
+set.seed(42)
+dataset <- data
+split <- sample.split(dataset$diagnosis,SplitRatio=0.7)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+training$diagnosis <- as.factor(training$diagnosis)
+testing$diagnosis <- as.factor(testing$diagnosis)
+
+training1 <- training
+testing1 <- testing
+training1$diagnosis <- as.numeric(training1$diagnosis) - 1
+testing1$diagnosis <- as.numeric(testing1$diagnosis) - 1
+
+model1 <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,          
+  decay = 0.01,      
+  maxit = 200,        
+  linout = FALSE,
+  trControl = train_control
+)
+
+predictions_prob1 <- predict(model1, newdata = testing1, type = "raw")
+testing1$pred1 <- ifelse(predictions_prob1 > 0.5, 1, 0)
+
+train_predictions_prob1 <- predict(model1, newdata = training1, type = "raw")
+training1$pred1 <- ifelse(train_predictions_prob1 > 0.5, 1, 0)
+
+model2 <- nnet(
+  diagnosis ~ . + pred1, 
+  data = training1, 
+  size = 10,        
+  decay = 0.01,       
+  maxit = 200,     
+  linout = FALSE,
+  trControl = train_control
+)
+
+predictions_prob2 <- predict(model2, newdata = testing1, type = "raw")
+predictions2 <- ifelse(predictions_prob2 > 0.5, 1, 0)
+
+predictions2 <- factor(predictions2, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+roc_curve2 <- roc(testing1$diagnosis, predictions_prob2)
+
+plot(roc_curve2, main = "ROC Curve", col = "red", lwd = 2)
+confusion_matrix <- table(Predicted = predictions2, Actual = actual)
+accuracyncc2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+print(confusion_matrix)
+cat("Accuracy: ", round(accuracyncc2 * 100, 2), "%\n")
+```
+
+Now let's do this 200 times and compare to the one without cross-validation
+
+```{r}
+crossValidated_accuracy <- tibble()
+for(seed in 1:200){
+  set.seed(seed)
+dataset <- data
+split <- sample.split(dataset$diagnosis,SplitRatio=0.7)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+training$diagnosis <- as.factor(training$diagnosis)
+testing$diagnosis <- as.factor(testing$diagnosis)
+
+training1 <- training
+testing1 <- testing
+training1$diagnosis <- as.numeric(training1$diagnosis) - 1
+testing1$diagnosis <- as.numeric(testing1$diagnosis) - 1
+
+model1 <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,          
+  decay = 0.01,      
+  maxit = 200,        
+  linout = FALSE,
+  trControl = train_control
+)
+
+predictions_prob1 <- predict(model1, newdata = testing1, type = "raw")
+testing1$pred1 <- ifelse(predictions_prob1 > 0.5, 1, 0)
+
+train_predictions_prob1 <- predict(model1, newdata = training1, type = "raw")
+training1$pred1 <- ifelse(train_predictions_prob1 > 0.5, 1, 0)
+
+model2 <- nnet(
+  diagnosis ~ . + pred1, 
+  data = training1, 
+  size = 10,        
+  decay = 0.01,       
+  maxit = 200,     
+  linout = FALSE,
+  trControl = train_control
+)
+
+predictions_prob2 <- predict(model2, newdata = testing1, type = "raw")
+predictions2 <- ifelse(predictions_prob2 > 0.5, 1, 0)
+
+predictions2 <- factor(predictions2, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions2, Actual = actual)
+accuracyncc2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracies <- tibble(
+  Model = "ncc",
+  Accuracy = round(accuracyncc2 * 100, 2))
+accuracies$seed = seed
+
+crossValidated_accuracy <- rbind(crossValidated_accuracy,accuracies)
+}
+```
+
+```{r}
+nonCrossValidated_accuracy <- tibble()
+for(seed in 1:200){
+  set.seed(seed)
+dataset <- data
+split <- sample.split(dataset$diagnosis,SplitRatio=0.7)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+training$diagnosis <- as.factor(training$diagnosis)
+testing$diagnosis <- as.factor(testing$diagnosis)
+
+training1 <- training
+testing1 <- testing
+training1$diagnosis <- as.numeric(training1$diagnosis) - 1
+testing1$diagnosis <- as.numeric(testing1$diagnosis) - 1
+
+model1 <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,          
+  decay = 0.01,      
+  maxit = 200,        
+  linout = FALSE
+)
+
+predictions_prob1 <- predict(model1, newdata = testing1, type = "raw")
+testing1$pred1 <- ifelse(predictions_prob1 > 0.5, 1, 0)
+
+train_predictions_prob1 <- predict(model1, newdata = training1, type = "raw")
+training1$pred1 <- ifelse(train_predictions_prob1 > 0.5, 1, 0)
+
+model2 <- nnet(
+  diagnosis ~ . + pred1, 
+  data = training1, 
+  size = 10,        
+  decay = 0.01,       
+  maxit = 200,     
+  linout = FALSE
+)
+
+predictions_prob2 <- predict(model2, newdata = testing1, type = "raw")
+predictions2 <- ifelse(predictions_prob2 > 0.5, 1, 0)
+
+predictions2 <- factor(predictions2, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions2, Actual = actual)
+accuracyncc2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracies <- tibble(
+  Model = "ncc",
+  Accuracy = round(accuracyncc2 * 100, 2))
+accuracies$seed = seed
+
+nonCrossValidated_accuracy <- rbind(nonCrossValidated_accuracy,accuracies)
+}
+```
+
+```{r}
+bothCombined <- rbind(cbind(cross="Cross Validated",crossValidated_accuracy),
+                      cbind(cross="Not Cross Validated",nonCrossValidated_accuracy))
+```
+
+```{r}
+ggplot(bothCombined,aes(x=cross,y=Accuracy,group=cross)) + geom_boxplot()
+```

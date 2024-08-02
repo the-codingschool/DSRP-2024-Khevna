@@ -21,8 +21,6 @@ editor: visual
 
 -   Compress Data
 
--   Hyper Parameter Tuning
-
 -   Evaluating Models
 
 -   Cross Validation
@@ -71,6 +69,9 @@ library(glmnet)
 library(gganimate)
 library(gifski)
 library(png)
+library(GGally)
+
+
 ```
 
 ### Import Dataset
@@ -97,10 +98,10 @@ head(data)
 ```
 
 ```{r}
-#ggplot(data,aes(x=radius_mean,y=radius_worst)) + geom_point() + geom_smooth(method="lm")
-#tempmodel <- lm(radius_worst ~ radius_mean, data = data)
-#slope <- coef(tempmodel)["radius_mean"]
-#print(slope)
+ggplot(data,aes(x=radius_mean,y=radius_worst)) + geom_point() + geom_smooth(method="lm")
+tempmodel <- lm(radius_worst ~ radius_mean, data = data)
+slope <- coef(tempmodel)["radius_mean"]
+print(slope)
 ```
 
 ```{r}
@@ -444,6 +445,7 @@ cat("Accuracy: ", round(accuracygb2 * 100, 2), "%\n")
 ```
 
 ```{r}
+#| message: false
 training1 <- training
 testing1 <- testing
 training1$diagnosis <- as.numeric(training1$diagnosis) - 1
@@ -472,6 +474,7 @@ cat("Accuracy: ", round(accuracymlp1 * 100, 2), "%\n")
 ```
 
 ```{r}
+#| message: false
 training1 <- trainingSubset
 testing1 <- testingSubset
 training1$diagnosis <- as.numeric(training1$diagnosis) - 1
@@ -502,6 +505,7 @@ cat("Accuracy: ", round(accuracymlp2 * 100, 2), "%\n")
 Neural Classification Chains
 
 ```{r}
+#| message: false
 training1 <- training
 testing1 <- testing
 training1$diagnosis <- as.numeric(training1$diagnosis) - 1
@@ -545,6 +549,7 @@ cat("Accuracy: ", round(accuracyncc1 * 100, 2), "%\n")
 ```
 
 ```{r}
+#| message: false
 training1 <- trainingSubset
 testing1 <- testingSubset
 training1$diagnosis <- as.numeric(training1$diagnosis) - 1
@@ -666,6 +671,7 @@ ggplot(accuracies_dataframe_long, aes(x = Metric, y = Accuracy)) +
 ```
 
 ```{r}
+#| message: false
 big_accuracy_dataframe <- tibble()
 
 for(seed in 1:200){
@@ -2120,8 +2126,10 @@ for(i in 1:199){
 
 ```{r}
 final_accuracies_standard <- rbind(big_accuracy_dataframe_standard,big_accuracy_dataframe2_standard)
+write.csv(final_accuracies_standard, "final_accuracies_standard.csv", row.names = FALSE)
+```
 
-
+```{r}
 p <- ggplot(final_accuracies_standard, aes(x = Metric, y = Accuracy)) +
   geom_boxplot(outlier.shape = NA) +
   geom_jitter(width = 0.2, size = 2, alpha = 0.3, aes(color = Model, group = interaction(Model, Metric))) +
@@ -2143,4 +2151,123 @@ anim_save("model_accuracy_comparison_cumulative_standard.gif", anim)
 
 ```{r}
 anim
+```
+
+From what we see, we can decide that we should use the subset and not the features or all the values because we have removed the highly correlated variables and the features one only show which are most important but don't say anything about it being completely adequate to predict or as adequate as the subset. We should also use our standardized data. Now, let's find which model is best with these constraints.
+
+```{r}
+final_accuracies_standard_subset <- final_accuracies_standard %>% filter(Metric == "Sub")
+
+ggplot(final_accuracies_standard_subset,aes(x = reorder(Model, Accuracy, FUN = median),y=Accuracy,group=Model))+geom_boxplot()
+```
+
+We see we should use ncc\
+Let's do ROC\
+
+```{r}
+set.seed(42)
+training1 <- trainingSubset
+testing1 <- testingSubset
+training1$diagnosis <- as.numeric(training1$diagnosis) - 1
+testing1$diagnosis <- as.numeric(testing1$diagnosis) - 1
+
+model1 <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,          
+  decay = 0.01,      
+  maxit = 200,        
+  linout = FALSE      
+)
+
+predictions_prob1 <- predict(model1, newdata = testing1, type = "raw")
+testing1$pred1 <- ifelse(predictions_prob1 > 0.5, 1, 0)
+
+train_predictions_prob1 <- predict(model1, newdata = training1, type = "raw")
+training1$pred1 <- ifelse(train_predictions_prob1 > 0.5, 1, 0)
+
+model2 <- nnet(
+  diagnosis ~ . + pred1, 
+  data = training1, 
+  size = 10,        
+  decay = 0.01,       
+  maxit = 200,     
+  linout = FALSE      
+)
+
+predictions_prob2 <- predict(model2, newdata = testing1, type = "raw")
+predictions2 <- ifelse(predictions_prob2 > 0.5, 1, 0)
+
+predictions2 <- factor(predictions2, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+roc_curve2 <- roc(testing1$diagnosis, predictions_prob2)
+
+plot(roc_curve2, main = "ROC Curve", col = "red", lwd = 2)
+confusion_matrix <- table(Predicted = predictions2, Actual = actual)
+accuracyncc2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+print(confusion_matrix)
+cat("Accuracy: ", round(accuracyncc2 * 100, 2), "%\n")
+
+auc2 <- auc(roc_curve2)
+cat("AUC for model2:", round(auc2, 2), "\n")
+```
+
+cross validation
+
+```{r}
+set.seed(42)
+ctrl <- trainControl(
+  method = "cv",
+  number = 10,   
+  verboseIter = FALSE  
+)
+
+training1 <- trainingSubset
+testing1 <- testingSubset
+training1$diagnosis <- as.numeric(training1$diagnosis) - 1
+testing1$diagnosis <- as.numeric(testing1$diagnosis) - 1
+
+model1 <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,          
+  decay = 0.01,      
+  maxit = 200,        
+  linout = FALSE,
+  trControl = ctrl
+)
+
+predictions_prob1 <- predict(model1, newdata = testing1, type = "raw")
+testing1$pred1 <- ifelse(predictions_prob1 > 0.5, 1, 0)
+
+train_predictions_prob1 <- predict(model1, newdata = training1, type = "raw")
+training1$pred1 <- ifelse(train_predictions_prob1 > 0.5, 1, 0)
+
+model2 <- nnet(
+  diagnosis ~ . + pred1, 
+  data = training1, 
+  size = 10,        
+  decay = 0.01,       
+  maxit = 200,     
+  linout = FALSE,
+  trControl = ctrl
+)
+
+predictions_prob2 <- predict(model2, newdata = testing1, type = "raw")
+predictions2 <- ifelse(predictions_prob2 > 0.5, 1, 0)
+
+predictions2 <- factor(predictions2, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+roc_curve2 <- roc(testing1$diagnosis, predictions_prob2)
+
+plot(roc_curve2, main = "ROC Curve", col = "red", lwd = 2)
+confusion_matrix <- table(Predicted = predictions2, Actual = actual)
+accuracyncc2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+print(confusion_matrix)
+cat("Accuracy: ", round(accuracyncc2 * 100, 2), "%\n")
+
+auc2 <- auc(roc_curve2)
+cat("AUC for model2:", round(auc2, 2), "\n")
 ```
