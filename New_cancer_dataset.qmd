@@ -993,7 +993,12 @@ model.matrix(~0+., data=lowcor_shortened_data) %>%
 **KNN Model**
 
 ```{r}
-
+library(caTools)
+library(readr)
+library(downloader)
+library(caTools)
+library(FNN)
+library(readxl)
 set.seed(42)
 split_lowcor = sample.split(lowcor_shortened_data$diagnosis, SplitRatio = 0.8)
 
@@ -1043,8 +1048,7 @@ ggplot(data = filtered_results_lowcor, aes( x = Number_of_Neighbours, y = result
 **25 and 28 are optimal numbers according to the table** 
 **highest accuracy 85**
 
-## Working with highly correlated data ##
-
+## Visualizations with highly cor data ##
 
 ```{r}
 
@@ -1052,7 +1056,7 @@ shortened_data = select(cleaned_num_data, c("diagnosis", "radius_mean", "radius_
 head(shortened_data)
 ```
 
-## Note: Should the data be corelated? because aren't PCA components inherently unrelated?
+**Note: Should the data be corelated? because aren't PCA components inherently unrelated?**
 
 ```{r}
 corPlot(shortened_data, cex = .5, xsrt = 90, ysrt = 90, cex.axis = .75, cex.yaxis = .5, stars =TRUE)
@@ -1069,7 +1073,7 @@ model.matrix(~0+., data=shortened_data) %>%
   ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2) + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(angle = 90, hjust = 1, size = 6))
 ```
 
-**Making a KNN Model - Predicting of a cell is cancerous or not**
+## Main: Making a KNN Model using highly cor data - Predicting of a cell is cancerous or not ##
 
 ```{r}
 library(caTools)
@@ -1091,18 +1095,26 @@ test_data = subset(shortened_data, split == FALSE)
 ```
 
 ```{r}
+library(caTools)
+library(readr)
+library(downloader)
+library(caTools)
+library(FNN)
+library(readxl)
+shortened_data = select(cleaned_num_data, c("diagnosis", "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_worst", "concavity_worst"))
+
 numbers <- c(1:100)
 results <- numeric()
 for (num in numbers){
-  knn_model = knn(train = train_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean",   "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se")], 
-                test = test_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se")], 
+  knn_model = knn(train = train_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_worst", "concavity_worst")], 
+                test = test_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_worst", "concavity_worst")], 
                 cl = train_data$diagnosis, 
                 k = num)
   pred = knn_model
   confusion_matrix = table(test_data$diagnosis, pred)
   accuracy = sum(diag(confusion_matrix)) / sum(confusion_matrix)
   results <- c(results, accuracy)
-  print(accuracy)
+  #print(accuracy)
   }
 #print(accuracy)
 #print(results)
@@ -1138,8 +1150,8 @@ ggplot(data = filtered_results, aes( x = Number_of_Neighbours, y = results)) +
 **KNN model with 20 Neighbours**
 
 ```{r}
-knn_model_20 = knn(train = train_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean",   "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se")], 
-                test = test_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se")], 
+knn_model_20 = knn(train = train_data[, c("radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_worst", "concavity_worst")], 
+                test = test_data[, c("radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_worst", "concavity_worst")], 
                 cl = train_data$diagnosis, 
                 k = 20)
 ```
@@ -1163,8 +1175,8 @@ print(accuracy_20)
 
 ```{r}
 
-knn_model_22 = knn(train = train_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean",   "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se")], 
-                test = test_data[, c( "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_se")], 
+knn_model_22 = knn(train = train_data[, c("radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_worst", "concavity_worst")], 
+                test = test_data[, c("radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_worst", "concavity_worst")], 
                 cl = train_data$diagnosis, 
                 k = 22)
 
@@ -1237,20 +1249,20 @@ ggplot(data = filtered_results_all, aes( x = Number_of_Neighbours, y = results_a
        y = "Accuracy") 
 ```
 
-## Creating a KNN model with all features only yeilds an accuracy of highest 0.9292035	at k = 20 - 23 (inclu). 
+**Creating a KNN model with all features only yeilds an accuracy of highest 0.9292035	at k = 20 - 23 (inclu).** 
 
-## Creating a KNN model with highly corelated features yeilds an accuracy of 0.9292035 at k = 20 and 22. 
+**Creating a KNN model with highly corelated features yeilds an accuracy of 0.9292035 at k = 20 and 22.**
 
-## We can therefore conculde the least correlated variables are not important to the knn model. ##
+**We can therefore conculde the least correlated variables are not important to the knn model.**
 
-## Statistical tests - Anova test / t-test
+## Statistical tests - Anova test / t-test 
 
 ```{r}
 library(ggplot2)
 library(ggpubr)
 library(tidyverse)
 library(broom)
-install.packages('AICcmodavg')
+#install.packages('AICcmodavg')
 library(AICcmodavg)
 ```
 
@@ -1261,16 +1273,16 @@ chr_shortened_data= mutate(shortened_data, diagnosis = ifelse(diagnosis == '1', 
 head(chr_shortened_data)
 ```
 
-## Analyzing what the key differences are between malignant and benign cells
+**Analyzing what the key differences are between malignant and benign cells**
 
-## Testing if radius_worst is different by diagnosis
+**Testing if radius_worst is different by diagnosis**
 
 ```{r}
 radiusworst_t_test <- t.test(radius_worst ~ diagnosis, data = chr_shortened_data)
 print(radiusworst_t_test)
 ```
 
-## WHAT DOES THE RESULT MEAN?
+**WHAT DOES THE RESULT MEAN?**
 
 Here is the interpretation of output - **Test Type**:
 
@@ -1300,12 +1312,98 @@ Here is the interpretation of output - **Test Type**:
 
         In summary, the t-test results show a significant difference between the means of radius_worst for the two groups, with group M having a higher mean value compared to group B. The results suggest a strong and statistically significant effect.
 
-## Doing a T-test for all the variables
+## Doing a T-test for all highly cor variables
 
 ```{r}
-##Here testData[-1] refers to all columns of testData but the first one (which contains the labels). Negative indexing is used for excluding data.## 
-## here the first column is disgnosis 
+names(shortened_data)
+```
+
+```{r}
 lapply(shortened_data[-1], function(x) t.test(x ~ shortened_data$diagnosis))
+```
+
+## Making a tibble using the data of HIGHEST CORRELATED VARIABLES from the t_test ##
+
+```{r}
+library(dbplyr)
+library(purrr)
+library(broom)
+
+## doing a t-test on all variables 
+t_test_results <- lapply(shortened_data[-1], function(x) t.test(x ~ shortened_data$diagnosis))
+
+# Use purrr::map to apply tidy() to each element in t_test_results
+tidy_results <- map_df(t_test_results, broom::tidy)
+
+# renaming the columns 
+tidy_results = rename(tidy_results, mean_benign_minus_malignant = estimate)
+tidy_results = rename(tidy_results, mean_benign_cell = estimate1)
+
+# adding column with variable names 
+tidy_results = add_column(
+  tidy_results,
+  #before = "mean_benign_minus_malignant",
+  #after = NULL,
+  variable_name = c("radius_mean", "radius_worst", "area_mean", "area_worst", "perimeter_mean", "perimeter_worst", "concave.points_mean", "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_worst")
+)
+
+## creating a new column using the data from existing column 
+tidy_results <- transform( 
+  tidy_results, mean_malignant_cell= num(mean_benign_cell) - num(mean_benign_minus_malignant))
+
+## dropping columns parameter and estimate2 and reordering the columns 
+tidy_results = select(tidy_results, c("variable_name", "mean_benign_cell", "mean_malignant_cell", "mean_benign_minus_malignant", "statistic", "p.value", "conf.low", "conf.high", "method", "alternative"))
+
+
+# Print the results
+
+head(tidy_results, 12)
+
+# renaming the columns 
+```
+
+
+## Completing a t-test of the least correlated values ##
+
+```{r}
+lowcor_t_test_results = lapply(lowcor_shortened_data[-1], function(x) t.test(x ~ shortened_data$diagnosis))
+#print(lowcor_t_test_results)
+```
+
+##Making a Tibble using least cor data##
+
+```{r}
+#names(lowcor_shortened_data)
+
+#lowcor_t_test_results = lapply(lowcor_shortened_data[-1], function(x) t.test(x ~ shortened_data$diagnosis))
+
+#making the tibble
+lowcor_tidy_results = map_df(lowcor_t_test_results, broom::tidy)
+
+#renaming columns 
+lowcor_tidy_results = rename(lowcor_tidy_results, mean_benign_cell = estimate1)
+lowcor_tidy_results = rename(lowcor_tidy_results, mean_malignant_cell = estimate2)
+
+## making a new column 
+lowcor_tidy_results <- transform( 
+  lowcor_tidy_results, mean_benign_minus_malignant= num(mean_benign_cell) - num(mean_malignant_cell))
+
+# adding column with variable names 
+lowcor_tidy_results = add_column(
+  lowcor_tidy_results,
+  #before = "mean_benign_minus_malignant",
+  #after = NULL,
+  variable_name = c("area_se", "radius_se", "perimeter_se", "texture_mean", "texture_worst", "symmetry_worst", "texture_se", "symmetry_se", "smoothness_se", "symmetry_mean", "concave.points_se", "concavity_se", "smoothness_worst", "compactness_se", "fractal_dimension_worst", "smoothness_mean", "fractal_dimension_se")
+)
+
+
+## dropping columns parameter and estimate2 and reordering the columns 
+lowcor_tidy_results = select(lowcor_tidy_results, c("variable_name", "mean_benign_cell", "mean_malignant_cell", "mean_benign_minus_malignant", "statistic", "p.value", "conf.low", "conf.high", "method", "alternative"))
+
+head(lowcor_tidy_results, 17)
+
+str(lowcor_tidy_results)
+
 ```
 
 \*\* **1. T-Test**
@@ -1342,7 +1440,7 @@ lapply(shortened_data[-1], function(x) t.test(x ~ shortened_data$diagnosis))
 
         If you had more than two groups (e.g., if you wanted to compare radius_mean across different types of tumors or additional categories), you would use ANOVA. However, in your case, if you only have two groups (M and B), a t-test is appropriate.
 
-## Scatter Plot for Concave Points
+## Scatter Plot for Concave Points ##
 
 ```{r}
 column_names <- colnames(shortened_data)
@@ -1367,7 +1465,7 @@ for(var in column_names){
   plot(scatterplot_concave.points_mean)}}
 ```
 
-## Scatter Plot for Concavity
+## Scatter Plot for Concavity ##
 
 ```{r}
 
@@ -1395,7 +1493,7 @@ for(var in column_names){
 
 ```
 
-## Scatter Plot for Compactness
+## Scatter Plot for Compactness ##
 
 ```{r}
 
@@ -1421,25 +1519,4 @@ for(var in column_names){
   plot(scatterplot_compactness_mean)}}
 ```
 
-```{r}
-column_names <- colnames(shortened_data)
-column_names
 
-for(var in column_names){
-  if (var != "concave.points_worst") {
-  scatterplot_concave.points_worst = ggplot(data = chr_shortened_data, aes_string(x = var, y = "concave.points_worst")) +
-    geom_point(aes(color = diagnosis)) +
-    labs(title = "ScatterPlot: Visualizing differnces between malignant and benign cells",
-         x = var,
-         y = "concave.points_worst") 
-  plot(scatterplot_concave.points_worst)}}
-
-for(var in column_names){
-  if (var != "concave.points_mean") {
-  scatterplot_concave.points_mean = ggplot(data = chr_shortened_data, aes_string(x = var, y = "concave.points_mean")) +
-    geom_point(aes(color = diagnosis)) +
-    labs(title = "ScatterPlot: Visualizing differnces between malignant and benign cells",
-         x = var,
-         y = "concave.points_mean") 
-  plot(scatterplot_concave.points_mean)}}
-```
