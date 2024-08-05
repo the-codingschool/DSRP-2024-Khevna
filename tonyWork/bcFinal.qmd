@@ -5,7 +5,9 @@ format: html
 editor: visual
 ---
 
-## 
+## Abstract
+
+In this study, we investigated various classification models applied to thje Wisconsin Breast Cancer Classification dataset found on Kaggle to evaluate each model's performance in predicting a diagnosis outcome on whether the tumor is benign or malignant. Utilizing a collection of ten algorithms including Random Forest, K-Nearest Neighbors, Support Vector Machines, Decision Trees, Naive Bayes, Logistic Regression, Boosting, Gradient Boosting Machines, Multi-Layer Perceptrons, and Neural Classification Chains, we assessed accuracy and precision metrics. The dataset underwent rigorous preprocessing, including feature selection to remove highly correlated variables and normalization to ensure consistent data scaling. We conducted extensive model evaluations, repeated across 200 iterations to ensure robustness and reliability of the results. This comprehensive analysis aims to identify the most effective model for breast cancer diagnosis prediction and to understand the relative performance of various classification techniques. We found that when using Neural Classification Chains, we would achieve the best median accuracy and the second best median precision.
 
 ```{r}
 library(psych)
@@ -121,7 +123,7 @@ actuals <- testing$diagnosis
 confusion_matrix <- table(Predicted = predictions, Actual = actuals)
 
 accuracyrf1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisionrf1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
 
 print("rf")
 print(confusion_matrix)
@@ -134,7 +136,7 @@ actuals <- testing$diagnosis
 confusion_matrix <- table(Predicted = knn_model, Actual = actuals)
 
 accuracyknn1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisionknn1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
 print("knn")
 print(confusion_matrix)
 
@@ -146,7 +148,7 @@ predictions <- predict(svm_model, testing)
 confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
 
 accuracysvm1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisionsvm1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
 
 print("svm,")
 print(confusion_matrix)
@@ -156,7 +158,7 @@ dt_model <- rpart(diagnosis ~ ., data = training, method = "class")
 predictions <- predict(dt_model, testing, type = "class")
 confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
 accuracydt1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisiondt1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
 print("dt")
 print(confusion_matrix)
 
@@ -166,7 +168,7 @@ nb_model <- naiveBayes(diagnosis ~ ., data = training)
 predictions <- predict(nb_model, testing)
 confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
 accuracynb1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisionnb1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
 print("nb")
 print(confusion_matrix)
 
@@ -180,7 +182,7 @@ predictions <- factor(predictions, levels = levels(testing$diagnosis))
 
 confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
 accuracylr1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisionlr1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
 print("lr")
 print(confusion_matrix)
 
@@ -191,7 +193,7 @@ predictions <- predict(ab_model, newdata = testing)
 
 confusion_matrix <- table(Predicted = predictions$class, Actual = testing$diagnosis)
 accuracyab1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisionab1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
 
 print("ab")
 print(confusion_matrix)
@@ -222,7 +224,7 @@ actual <- factor(testing1$diagnosis, levels = c(0, 1))
 
 confusion_matrix <- table(Predicted = predictions, Actual = actual)
 accuracygb1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisiongb1 <- confusion_matrix["1", "1"] / sum(confusion_matrix["1", ])
 print("gb")
 print(confusion_matrix)
 
@@ -244,7 +246,7 @@ actual <- factor(testing1$diagnosis, levels = c(0, 1))
 
 confusion_matrix <- table(Predicted = predictions, Actual = actual)
 accuracymlp1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisionmlp1 <- confusion_matrix["1", "1"] / sum(confusion_matrix["1", ])
 print("mlp")
 print(confusion_matrix)
 
@@ -280,7 +282,7 @@ actual <- factor(testing1$diagnosis, levels = c(0, 1))
 
 confusion_matrix <- table(Predicted = predictions2, Actual = actual)
 accuracyncc1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisionncc1 <- confusion_matrix["1", "1"] / sum(confusion_matrix["1", ])
 print("ncc")
 print(confusion_matrix)
 
@@ -289,8 +291,18 @@ accuracies <- tibble(
   Accuracy = c(round(accuracyrf1 * 100, 2), round(accuracyknn1 * 100, 2), round(accuracysvm1 * 100, 2),
                     round(accuracydt1 * 100, 2), round(accuracynb1 * 100, 2), round(accuracylr1 * 100, 2),
                     round(accuracyab1 * 100, 2), round(accuracygb1 * 100, 2), round(accuracyncc1 * 100, 2),
-                    round(accuracymlp1 * 100, 2)))
+                    round(accuracymlp1 * 100, 2)),
+  Precision = c(round(precisionrf1 * 100, 2), round(precisionknn1 * 100, 2), round(precisionsvm1 * 100, 2),
+                    round(precisiondt1 * 100, 2), round(precisionnb1 * 100, 2), round(precisionlr1 * 100, 2),
+                    round(precisionab1 * 100, 2), round(precisiongb1 * 100, 2), round(precisionncc1 * 100, 2),
+                    round(precisionmlp1 * 100, 2)))
+  
+  
+  
+  
 accuracies
+
+  
 ```
 
 We should repeat this 200 times in order to make sure it isn't just from the seed.
@@ -316,7 +328,7 @@ actuals <- testing$diagnosis
 confusion_matrix <- table(Predicted = predictions, Actual = actuals)
 
 accuracyrf1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisionrf1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
 
 print("rf")
 print(confusion_matrix)
@@ -329,7 +341,7 @@ actuals <- testing$diagnosis
 confusion_matrix <- table(Predicted = knn_model, Actual = actuals)
 
 accuracyknn1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisionknn1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
 print("knn")
 print(confusion_matrix)
 
@@ -341,7 +353,7 @@ predictions <- predict(svm_model, testing)
 confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
 
 accuracysvm1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisionsvm1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
 
 print("svm,")
 print(confusion_matrix)
@@ -351,7 +363,7 @@ dt_model <- rpart(diagnosis ~ ., data = training, method = "class")
 predictions <- predict(dt_model, testing, type = "class")
 confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
 accuracydt1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisiondt1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
 print("dt")
 print(confusion_matrix)
 
@@ -361,7 +373,7 @@ nb_model <- naiveBayes(diagnosis ~ ., data = training)
 predictions <- predict(nb_model, testing)
 confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
 accuracynb1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisionnb1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
 print("nb")
 print(confusion_matrix)
 
@@ -375,7 +387,7 @@ predictions <- factor(predictions, levels = levels(testing$diagnosis))
 
 confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
 accuracylr1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisionlr1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
 print("lr")
 print(confusion_matrix)
 
@@ -386,7 +398,7 @@ predictions <- predict(ab_model, newdata = testing)
 
 confusion_matrix <- table(Predicted = predictions$class, Actual = testing$diagnosis)
 accuracyab1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisionab1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
 
 print("ab")
 print(confusion_matrix)
@@ -417,7 +429,7 @@ actual <- factor(testing1$diagnosis, levels = c(0, 1))
 
 confusion_matrix <- table(Predicted = predictions, Actual = actual)
 accuracygb1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisiongb1 <- confusion_matrix["1", "1"] / sum(confusion_matrix["1", ])
 print("gb")
 print(confusion_matrix)
 
@@ -439,7 +451,7 @@ actual <- factor(testing1$diagnosis, levels = c(0, 1))
 
 confusion_matrix <- table(Predicted = predictions, Actual = actual)
 accuracymlp1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisionmlp1 <- confusion_matrix["1", "1"] / sum(confusion_matrix["1", ])
 print("mlp")
 print(confusion_matrix)
 
@@ -475,7 +487,7 @@ actual <- factor(testing1$diagnosis, levels = c(0, 1))
 
 confusion_matrix <- table(Predicted = predictions2, Actual = actual)
 accuracyncc1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-
+precisionncc1 <- confusion_matrix["1", "1"] / sum(confusion_matrix["1", ])
 print("ncc")
 print(confusion_matrix)
 
@@ -484,7 +496,11 @@ accuracies <- tibble(
   Accuracy = c(round(accuracyrf1 * 100, 2), round(accuracyknn1 * 100, 2), round(accuracysvm1 * 100, 2),
                     round(accuracydt1 * 100, 2), round(accuracynb1 * 100, 2), round(accuracylr1 * 100, 2),
                     round(accuracyab1 * 100, 2), round(accuracygb1 * 100, 2), round(accuracyncc1 * 100, 2),
-                    round(accuracymlp1 * 100, 2)))
+                    round(accuracymlp1 * 100, 2)),
+  Precision = c(round(precisionrf1 * 100, 2), round(precisionknn1 * 100, 2), round(precisionsvm1 * 100, 2),
+                    round(precisiondt1 * 100, 2), round(precisionnb1 * 100, 2), round(precisionlr1 * 100, 2),
+                    round(precisionab1 * 100, 2), round(precisiongb1 * 100, 2), round(precisionncc1 * 100, 2),
+                    round(precisionmlp1 * 100, 2)))
 accuracies$seed = seed
 
 accuracy_dataframe <- bind_rows(accuracy_dataframe,accuracies)
@@ -493,13 +509,19 @@ accuracy_dataframe <- bind_rows(accuracy_dataframe,accuracies)
 accuracy_dataframe
 ```
 
-Let's find the best model after doing this
+Let's find the most accurate model after doing this
 
 ```{r}
 ggplot(accuracy_dataframe,aes(x = reorder(Model, Accuracy, FUN = median),y=Accuracy,group=Model))+geom_boxplot()
 ```
 
-We see we should use ncc
+Let's find the most precise model after doing this
+
+```{r}
+ggplot(accuracy_dataframe,aes(x = reorder(Model, Precision, FUN = median),y=Precision,group=Model))+geom_boxplot()
+```
+
+We see that ncc is one of the better models as it is at or very close to the best in terms of both accuracy and precision.
 
 ```{r}
 set.seed(42)
@@ -550,8 +572,10 @@ roc_curve2 <- roc(testing1$diagnosis, predictions_prob2)
 plot(roc_curve2, main = "ROC Curve", col = "red", lwd = 2)
 confusion_matrix <- table(Predicted = predictions2, Actual = actual)
 accuracyncc2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+precisionncc2 <- confusion_matrix["1", "1"] / sum(confusion_matrix["1", ])
 print(confusion_matrix)
 cat("Accuracy: ", round(accuracyncc2 * 100, 2), "%\n")
+cat("Precision: ", round(precisionncc2 * 100, 2), "%\n")
 ```
 
 We can now look at this best model with cross validation.
@@ -615,8 +639,10 @@ roc_curve2 <- roc(testing1$diagnosis, predictions_prob2)
 plot(roc_curve2, main = "ROC Curve", col = "red", lwd = 2)
 confusion_matrix <- table(Predicted = predictions2, Actual = actual)
 accuracyncc2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+precisionncc2 <- confusion_matrix["1", "1"] / sum(confusion_matrix["1", ])
 print(confusion_matrix)
 cat("Accuracy: ", round(accuracyncc2 * 100, 2), "%\n")
+cat("Precision: ", round(precisionncc2 * 100, 2), "%\n")
 ```
 
 Now let's do this 200 times and compare to the one without cross-validation
@@ -671,9 +697,11 @@ actual <- factor(testing1$diagnosis, levels = c(0, 1))
 
 confusion_matrix <- table(Predicted = predictions2, Actual = actual)
 accuracyncc2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+precisionncc2 <- confusion_matrix["1", "1"] / sum(confusion_matrix["1", ])
 accuracies <- tibble(
   Model = "ncc",
-  Accuracy = round(accuracyncc2 * 100, 2))
+  Accuracy = round(accuracyncc2 * 100, 2),
+  Precision=round(precisionncc2*100,2))
 accuracies$seed = seed
 
 crossValidated_accuracy <- rbind(crossValidated_accuracy,accuracies)
@@ -728,9 +756,11 @@ actual <- factor(testing1$diagnosis, levels = c(0, 1))
 
 confusion_matrix <- table(Predicted = predictions2, Actual = actual)
 accuracyncc2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+precisionncc2 <- confusion_matrix["1", "1"] / sum(confusion_matrix["1", ])
 accuracies <- tibble(
   Model = "ncc",
-  Accuracy = round(accuracyncc2 * 100, 2))
+  Accuracy = round(accuracyncc2 * 100, 2),
+  Precision=round(precisionncc2*100,2))
 accuracies$seed = seed
 
 nonCrossValidated_accuracy <- rbind(nonCrossValidated_accuracy,accuracies)
@@ -745,3 +775,94 @@ bothCombined <- rbind(cbind(cross="Cross Validated",crossValidated_accuracy),
 ```{r}
 ggplot(bothCombined,aes(x=cross,y=Accuracy,group=cross)) + geom_boxplot()
 ```
+
+Turns out, the cross validation had no effect.
+
+Let's take a closer look at the variables coefficients.
+
+```{r}
+set.seed(42)
+dataset <- data
+split <- sample.split(dataset$diagnosis,SplitRatio=0.7)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+training$diagnosis <- as.factor(training$diagnosis)
+testing$diagnosis <- as.factor(testing$diagnosis)
+
+training1 <- training
+testing1 <- testing
+training1$diagnosis <- as.numeric(training1$diagnosis) - 1
+testing1$diagnosis <- as.numeric(testing1$diagnosis) - 1
+
+model1 <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,          
+  decay = 0.01,      
+  maxit = 200,        
+  linout = FALSE,
+  trControl = train_control
+)
+
+predictions_prob1 <- predict(model1, newdata = testing1, type = "raw")
+testing1$pred1 <- ifelse(predictions_prob1 > 0.5, 1, 0)
+
+train_predictions_prob1 <- predict(model1, newdata = training1, type = "raw")
+training1$pred1 <- ifelse(train_predictions_prob1 > 0.5, 1, 0)
+
+model2 <- nnet(
+  diagnosis ~ . + pred1, 
+  data = training1, 
+  size = 10,        
+  decay = 0.01,       
+  maxit = 200,     
+  linout = FALSE,
+  trControl = train_control
+)
+
+predictions_prob2 <- predict(model2, newdata = testing1, type = "raw")
+predictions2 <- ifelse(predictions_prob2 > 0.5, 1, 0)
+
+predictions2 <- factor(predictions2, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+roc_curve2 <- roc(testing1$diagnosis, predictions_prob2)
+
+plot(roc_curve2, main = "ROC Curve", col = "red", lwd = 2)
+confusion_matrix <- table(Predicted = predictions2, Actual = actual)
+accuracyncc2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+precisionncc2 <- confusion_matrix["1", "1"] / sum(confusion_matrix["1", ])
+print(confusion_matrix)
+cat("Accuracy: ", round(accuracyncc2 * 100, 2), "%\n")
+cat("Precision: ", round(precisionncc2 * 100, 2), "%\n")
+
+weights <- model1$wts
+print(weights)
+
+num_features <- ncol(data) - 1  
+num_hidden_units <- 10  
+
+variable_names <- colnames(data)[-which(colnames(data) == "diagnosis")]
+
+input_hidden_size <- (num_features + 1) * num_hidden_units
+
+input_to_hidden_weights <- matrix(weights[1:input_hidden_size], nrow = num_hidden_units, byrow = TRUE)
+
+input_weights_no_bias <- input_to_hidden_weights[, -ncol(input_to_hidden_weights)]
+
+average_abs_weights <- apply(input_weights_no_bias, 2, function(x) mean(abs(x)))
+
+df_avg_weights <- data.frame(Variable = variable_names, Avg_Abs_Weight = average_abs_weights)
+
+ggplot(df_avg_weights, aes(x = Variable, y = Avg_Abs_Weight)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(title = "Average Absolute Weights per Input Variable",
+       x = "Input Variables",
+       y = "Average Absolute Weight") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Feature importance in neural networks, including those trained using the `nnet` package, is not directly available as it is in more traditional machine learning models like decision trees or random forests. In these models, feature importance is derived from the impact each feature has on the model's decisions, typically through measures such as information gain or Gini impurity. However, neural networks operate through layers of weighted connections and non-linear activations, making it difficult to attribute the importance of individual features in a straightforward manner.
+
+Neural networks, such as the nnet model and particularly Multi-Layer Perceptrons (MLPs), consist of complex interactions between features that are transformed through multiple layers. This non-linearity and the distributed nature of the learned weights make it challenging to interpret the effect of each feature directly. These methods generally involve perturbing the data and observing changes in model performance, rather than deriving feature importance directly from the model's parameters. Techniques such as permutation importance, sensitivity analysis, or using model-specific interpretability tools (like SHAP or LIME) are often employed to approximate feature importance, but we were unable to generate these in a timely manner especially since my group was a week behind because of issues with another dataset. Thus, these could be part of our next steps in this project.
