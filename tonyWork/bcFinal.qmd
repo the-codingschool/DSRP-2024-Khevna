@@ -7,7 +7,7 @@ editor: visual
 
 ## Abstract
 
-In this study, we investigated various classification models applied to thje Wisconsin Breast Cancer Classification dataset found on Kaggle to evaluate each model's performance in predicting a diagnosis outcome on whether the tumor is benign or malignant. Utilizing a collection of ten algorithms including, we assessed accuracy and precision metrics. The dataset underwent rigorous preprocessing, including feature selection to remove highly correlated variables and normalization to ensure consistent data scaling. We conducted extensive model evaluations, repeated across 200 iterations to ensure robustness and reliability of the results. This comprehensive analysis aims to identify the most effective model for breast cancer diagnosis prediction and to understand the relative performance of various classification techniques. We found that when using Neural Classification Chains, we would achieve the best median accuracy and the second best median precision.
+In this study, we investigated various classification models applied to thje Wisconsin Breast Cancer Classification dataset found on Kaggle to evaluate each model's performance in predicting a diagnosis outcome on whether the tumor is benign or malignant. Utilizing a collection of ten algorithms including, we assessed accuracy and precision metrics. The dataset underwent rigorous preprocessing, including feature selection to remove highly correlated variables and normalization to ensure consistent data scaling. We conducted extensive model evaluations, repeated across 200 iterations to ensure robustness and reliability of the results. This comprehensive analysis aims to identify the most effective model for breast cancer diagnosis prediction and to understand the relative performance of various classification techniques. We found that when using Neural Classification Chains, we would achieve the best median accuracy and the second best median precision and found that the most important features for the top performing models were radius_worst, concave.points_worst, concavity_worst, radius_se, and compactness_mean.
 
 ## Introduction
 
@@ -77,18 +77,28 @@ nearZeroVar(data)
 
 The nearZeroVar shows us that we don't have to remove any variables with little to no variation.
 
+We normalize the data for better classification
+
+```{r}
+data <- cbind(data[1],as.data.frame(scale(data[,-1])))
+```
+
+To make sure there not any highly correlated variables, we can calculate the correlation between every numerical variable and then plot those that are about 0.9.
+
 ```{r}
 numerical_data <- data[,2:31]
 correlation <- cor(numerical_data,use = "complete.obs")
-ggcorrplot(correlation)
+ggcorrplot(correlation > 0.9)
 ```
+
+We also use the findCorrelation function to find the variables we need to remove
 
 ```{r}
 highlyCorrelated <- findCorrelation(cor(numerical_data), cutoff=0.9,names=TRUE)
 highlyCorrelated
 ```
 
-By iterating through this list of highly correlated variables and using some logic, we can come up with the following: It's not the exact same but removes enough to leave none highly correlated.
+By iterating through this list of highly correlated variables and using some logic, we can come up with the following: It's not the exact same but removes enough to leave none highly correlated. We can see this when we run the findCorrelation function again.
 
 ```{r}
 highlyCorrelated <- findCorrelation(cor(select(numerical_data,-c("concavity_mean","concave.points_mean","perimeter_worst","radius_mean","perimeter_mean","perimeter_se","area_worst","area_mean","area_se","texture_mean"))), cutoff=0.9,names=TRUE)
@@ -96,6 +106,7 @@ highlyCorrelated
 ```
 
 ```{r}
+originalData <- data
 data <- data %>% select(-c("concavity_mean","concave.points_mean","perimeter_worst","radius_mean","perimeter_mean","perimeter_se","area_worst","area_mean","area_se","texture_mean"))
 ```
 
@@ -104,13 +115,18 @@ correlation <- cor(data[,-1],use = "complete.obs")
 ggcorrplot(correlation > 0.9) 
 ```
 
-We should now normalize/standardize the data
+We can now use this subset data on all 10 of the different models: Random Forest, K-Nearest Neighbors, Support Vector Machines, Decision Trees, Naive Bayes, Logistic Regression, Boosting, Gradient Boosting Machines, Multi-Layer Perceptrons, and Neural Classification Chains. These models all have their unique way of classifying.
 
-```{r}
-data <- cbind(data[1],as.data.frame(scale(data[,-1])))
-```
-
-We can now use this testing data on all of these different models
+1.  Random Forest creates multiple decision trees from random subsets of data and features. The final prediction comes from averaging the results from all the trees.
+2.  K-Nearest Neighbors classifies data by finding the "k" closest neighbors by distance. The label is determined by the majority vote among these neighbors.
+3.  Support Vector Machines tries to find the optimal hyperplane for separating the data into their categories. It can handle both linear and non-linear separations using different kernel functions.
+4.  Decision Trees split the data into branches based on feature values. Each branch represents a decision path leading to a final prediction at the leaf nodes.
+5.  Naive Bayes uses Bayes' theorem and assumes that features are conditionally independent given the class. It calculates the probability of each class and predicts the one with the highest probability.
+6.  Logistic Regression predicts the probability of a binary outcome using a logistic function and is very useful for classification tasks like this one.
+7.  Boosting builds an ensemble of weak learners, where each new model focuses on correcting the errors of the previous ones. The final model is a weighted sum of all weak learners, improving accuracy.
+8.  Gradient Boosting Machines sequentially build models to minimize a loss function using gradient descent. It often uses decision trees as base learners and can handle various loss functions.
+9.  Multi-Layer Perceptrons are neural networks with multiple layers of neurons. They learn complex patterns in the data through non-linear activation functions and backpropagation.
+10. Neural Classification Chains chain multiple binary classifiers, where the prediction of one can depend on the predictions of the previous ones, to make a final prediction.
 
 ```{r}
 set.seed(42)
@@ -313,7 +329,342 @@ accuracies
   
 ```
 
-We should repeat this 200 times in order to make sure it isn't just from the seed.
+Now, notice that we used the subset and not all the variables. We need to make sure that this is reasonable, so we should compare the results from just running the ml model with just the subset with the results from running the ml models with all of the data
+
+```{r}
+big_accuracy_dataframe_standard <- tibble()
+
+for(seed in 1:200){
+  set.seed(seed)
+dataset <- originalData
+split <- sample.split(dataset$diagnosis,SplitRatio=0.7)
+training <- subset(dataset,split==TRUE)
+testing <- subset(dataset,split==FALSE)
+training$diagnosis <- as.factor(training$diagnosis)
+testing$diagnosis <- as.factor(testing$diagnosis)
+
+
+
+trainingSubset <- training %>% select(-c("concavity_mean","concave.points_mean","perimeter_worst","radius_mean","perimeter_mean","perimeter_se","area_worst","area_mean","area_se","texture_mean"))
+testingSubset <- testing %>% select(-c("concavity_mean","concave.points_mean","perimeter_worst","radius_mean","perimeter_mean","perimeter_se","area_worst","area_mean","area_se","texture_mean"))
+
+
+
+rf_model <- randomForest(x = training[,-1],
+                         y = training$diagnosis, ntree=50)
+
+predictions <- predict(rf_model, newdata = testing[,-1])
+
+actuals <- testing$diagnosis
+
+confusion_matrix <- table(Predicted = predictions, Actual = actuals)
+
+accuracyrf1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+rf_model <- randomForest(x = trainingSubset[,-1],
+                         y = trainingSubset$diagnosis, ntree=50)
+
+predictions <- predict(rf_model, newdata = testingSubset[,-1])
+
+actuals <- testingSubset$diagnosis
+
+confusion_matrix <- table(Predicted = predictions, Actual = actuals)
+
+accuracyrf2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+knn_model <- knn(train = training[,-1], test=testing[,-1],cl=training$diagnosis, k=5)
+
+actuals <- testing$diagnosis
+
+confusion_matrix <- table(Predicted = knn_model, Actual = actuals)
+
+accuracyknn1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+knn_model <- knn(train = trainingSubset[,-1], test=testingSubset[,-1],cl=training$diagnosis, k=5)
+
+actuals <- testingSubset$diagnosis
+
+confusion_matrix <- table(Predicted = knn_model, Actual = actuals)
+
+accuracyknn2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+svm_model <- svm(diagnosis ~ ., data = training, kernel = "radial", cost = 1, scale = TRUE)
+
+predictions <- predict(svm_model, testing)
+confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
+
+accuracysvm1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+svm_model <- svm(diagnosis ~ ., data = trainingSubset, kernel = "radial", cost = 1, scale = TRUE)
+
+predictions <- predict(svm_model, testingSubset)
+confusion_matrix <- table(Predicted = predictions, Actual = testingSubset$diagnosis)
+
+accuracysvm2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+dt_model <- rpart(diagnosis ~ ., data = training, method = "class")
+predictions <- predict(dt_model, testing, type = "class")
+confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
+accuracydt1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+dt_model <- rpart(diagnosis ~ ., data = trainingSubset, method = "class")
+predictions <- predict(dt_model, testingSubset, type = "class")
+confusion_matrix <- table(Predicted = predictions, Actual = testingSubset$diagnosis)
+accuracydt2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+nb_model <- naiveBayes(diagnosis ~ ., data = training)
+predictions <- predict(nb_model, testing)
+confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
+accuracynb1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+nb_model <- naiveBayes(diagnosis ~ ., data = trainingSubset)
+predictions <- predict(nb_model, testingSubset)
+confusion_matrix <- table(Predicted = predictions, Actual = testingSubset$diagnosis)
+accuracynb2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+lr_model <- glm(diagnosis ~ ., data = training, family = binomial)
+predictions_prob <- predict(lr_model, testing, type = "response")
+predictions <- ifelse(predictions_prob > 0.5, "M", "B")
+predictions <- factor(predictions, levels = levels(testing$diagnosis))
+
+confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
+accuracylr1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+lr_model <- glm(diagnosis ~ ., data = trainingSubset, family = binomial)
+predictions_prob <- predict(lr_model, testingSubset, type = "response")
+predictions <- ifelse(predictions_prob > 0.5, "M", "B")
+predictions <- factor(predictions, levels = levels(testingSubset$diagnosis))
+
+confusion_matrix <- table(Predicted = predictions, Actual = testingSubset$diagnosis)
+accuracylr2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+ab_model <- boosting(diagnosis ~ ., data = training, mfinal = 50)
+predictions <- predict(ab_model, newdata = testing)
+
+confusion_matrix <- table(Predicted = predictions$class, Actual = testing$diagnosis)
+accuracyab1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+ab_model <- boosting(diagnosis ~ ., data = trainingSubset, mfinal = 50)
+predictions <- predict(ab_model, newdata = testingSubset)
+
+confusion_matrix <- table(Predicted = predictions$class, Actual = testingSubset$diagnosis)
+accuracyab2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+training1 <- training
+testing1 <- testing
+training1$diagnosis <- as.numeric(training1$diagnosis) - 1
+testing1$diagnosis <- as.numeric(testing1$diagnosis) - 1
+
+gb_model <- gbm(
+  formula = diagnosis ~ ., 
+  data = training1, 
+  distribution = "bernoulli", 
+  n.trees = 100, 
+  interaction.depth = 3, 
+  shrinkage = 0.01, 
+  n.minobsinnode = 10
+)
+
+
+predictions_prob <- predict(gb_model, newdata = testing1, n.trees = 100, type = "response")
+predictions <- ifelse(predictions_prob > 0.5, 1, 0) 
+
+predictions <- factor(predictions, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions, Actual = actual)
+accuracygb1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+gb_model <- gbm(
+  formula = diagnosis ~ ., 
+  data = training1, 
+  distribution = "bernoulli", 
+  n.trees = 100, 
+  interaction.depth = 3, 
+  shrinkage = 0.01, 
+  n.minobsinnode = 10
+)
+
+predictions_prob <- predict(gb_model, newdata = testing1, n.trees = 100, type = "response")
+predictions <- ifelse(predictions_prob > 0.5, 1, 0)  
+
+predictions <- factor(predictions, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+
+confusion_matrix <- table(Predicted = predictions, Actual = actual)
+accuracygb2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+mlp_model <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,       
+  decay = 0.01,       
+  maxit = 200,        
+  linout = FALSE      
+)
+
+predictions_prob <- predict(mlp_model, newdata = testing1, type = "raw")
+predictions <- ifelse(predictions_prob > 0.5, 1, 0)  
+
+predictions <- factor(predictions, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions, Actual = actual)
+accuracymlp1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+mlp_model <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,       
+  decay = 0.01,       
+  maxit = 200,        
+  linout = FALSE      
+)
+
+predictions_prob <- predict(mlp_model, newdata = testing1, type = "raw")
+predictions <- ifelse(predictions_prob > 0.5, 1, 0)  
+
+predictions <- factor(predictions, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions, Actual = actual)
+accuracymlp2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+model1 <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,          
+  decay = 0.01,      
+  maxit = 200,        
+  linout = FALSE      
+)
+
+predictions_prob1 <- predict(model1, newdata = testing1, type = "raw")
+testing1$pred1 <- ifelse(predictions_prob1 > 0.5, 1, 0)
+
+train_predictions_prob1 <- predict(model1, newdata = training1, type = "raw")
+training1$pred1 <- ifelse(train_predictions_prob1 > 0.5, 1, 0)
+
+model2 <- nnet(
+  diagnosis ~ . + pred1, 
+  data = training1, 
+  size = 10,        
+  decay = 0.01,       
+  maxit = 200,     
+  linout = FALSE      
+)
+
+predictions_prob2 <- predict(model2, newdata = testing1, type = "raw")
+predictions2 <- ifelse(predictions_prob2 > 0.5, 1, 0)
+
+predictions2 <- factor(predictions2, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions2, Actual = actual)
+accuracyncc1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+
+model1 <- nnet(
+  diagnosis ~ ., 
+  data = training1, 
+  size = 10,          
+  decay = 0.01,      
+  maxit = 200,        
+  linout = FALSE      
+)
+
+predictions_prob1 <- predict(model1, newdata = testing1, type = "raw")
+testing1$pred1 <- ifelse(predictions_prob1 > 0.5, 1, 0)
+
+train_predictions_prob1 <- predict(model1, newdata = training1, type = "raw")
+training1$pred1 <- ifelse(train_predictions_prob1 > 0.5, 1, 0)
+
+model2 <- nnet(
+  diagnosis ~ . + pred1, 
+  data = training1, 
+  size = 10,        
+  decay = 0.01,       
+  maxit = 200,     
+  linout = FALSE      
+)
+
+predictions_prob2 <- predict(model2, newdata = testing1, type = "raw")
+predictions2 <- ifelse(predictions_prob2 > 0.5, 1, 0)
+
+predictions2 <- factor(predictions2, levels = c(0, 1))
+actual <- factor(testing1$diagnosis, levels = c(0, 1))
+
+confusion_matrix <- table(Predicted = predictions2, Actual = actual)
+accuracyncc2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+
+accuracies <- tibble(
+  Model = c("rf", "knn", "svm", "dt", "nb", "lr", "ab", "gb", "ncc", "mlp"),
+  All_Variables = c(round(accuracyrf1 * 100, 2), round(accuracyknn1 * 100, 2), round(accuracysvm1 * 100, 2),
+                    round(accuracydt1 * 100, 2), round(accuracynb1 * 100, 2), round(accuracylr1 * 100, 2),
+                    round(accuracyab1 * 100, 2), round(accuracygb1 * 100, 2), round(accuracyncc1 * 100, 2),
+                    round(accuracymlp1 * 100, 2)),
+  Subset = c(round(accuracyrf2 * 100, 2), round(accuracyknn2 * 100, 2), round(accuracysvm2 * 100, 2),
+             round(accuracydt2 * 100, 2), round(accuracynb2 * 100, 2), round(accuracylr2 * 100, 2),
+             round(accuracyab2 * 100, 2), round(accuracygb2 * 100, 2), round(accuracyncc2 * 100, 2),
+             round(accuracymlp2 * 100, 2))
+)
+
+accuracies_long <- accuracies %>%
+  pivot_longer(cols = c("All_Variables", "Subset"), 
+               names_to = "Metric", 
+               values_to = "Accuracy")
+accuracies_long$seed = seed
+big_accuracy_dataframe_standard <- bind_rows(big_accuracy_dataframe_standard,accuracies_long)
+}
+
+
+```
+
+```{r}
+ggplot(big_accuracy_dataframe_standard, aes(x = Metric, y = Accuracy)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(width = 0.2, size = 2, alpha = 0.1, aes(color = Model, group = interaction(Model, Metric))) +
+  labs(title = "Model Accuracy Comparison W/ Normalized Values",
+       x = "Metric",
+       y = "Accuracy (%)") +
+  theme_minimal()
+```
+
+Now, we know that we can use the subset of data that we got after removing all the highly correlated variables as the accuracy stays roughly the same. We cannot do a t-test on this data because each seed uses the same data so the t-test is not applicable. Now, let's get some statistics about the machine learning results after only suing the subset.
 
 ```{r}
 accuracy_dataframe <- tibble()
@@ -529,6 +880,8 @@ Let's find the most precise model after doing this
 ggplot(accuracy_dataframe,aes(x = reorder(Model, Precision, FUN = median),y=Precision,group=Model))+geom_boxplot()
 ```
 
+------------------------------
+
 We see that ncc is one of the better models as it is at or very close to the best in terms of both accuracy and precision.
 
 ```{r}
@@ -653,7 +1006,7 @@ cat("Accuracy: ", round(accuracyncc2 * 100, 2), "%\n")
 cat("Precision: ", round(precisionncc2 * 100, 2), "%\n")
 ```
 
-Now let's do this 200 times and compare to the one without cross-validation
+Now let's compare the two by repeating this 200 times.
 
 ```{r}
 crossValidated_accuracy <- tibble()
@@ -784,9 +1137,15 @@ bothCombined <- rbind(cbind(cross="Cross Validated",crossValidated_accuracy),
 ggplot(bothCombined,aes(x=cross,y=Accuracy,group=cross)) + geom_boxplot()
 ```
 
-Turns out, the cross validation had no effect.
+Turns out, the cross validation had no effect in this case.
 
-Let's take a closer look at the variables coefficients.
+-------------------------------
+
+Feature importance in neural networks, including those trained using the `nnet` package, is not directly available as it is in more traditional machine learning models like decision trees or random forests. In these models, feature importance is derived from the impact each feature has on the model's decisions, typically through measures such as information gain or Gini impurity. However, neural networks operate through layers of weighted connections and non-linear activations, making it difficult to attribute the importance of individual features in a straightforward manner.
+
+Neural networks, such as the nnet model and particularly Multi-Layer Perceptrons (MLPs), consist of complex interactions between features that are transformed through multiple layers. This non-linearity and the distributed nature of the learned weights make it challenging to interpret the effect of each feature directly. These methods generally involve perturbing the data and observing changes in model performance, rather than deriving feature importance directly from the model's parameters. Techniques such as permutation importance, sensitivity analysis, or using model-specific interpretability tools (like SHAP or LIME) are often employed to approximate feature importance, but we were unable to generate these in a timely manner especially since my group was a week behind because of issues with another dataset. Thus, these could be part of our next steps in this project.
+
+We also saw that the random forest model was pretty high in terms of both precision and accuracy. Thus, we can explore this instead of see what features were important in this model as the only top performers would take much more difficult measures to analyze. We also saw that the svm model had great performances as well. Thus, we should also analyze the feature importance from this model. We can do this by using rfe and with cross-validation.
 
 ```{r}
 set.seed(42)
@@ -797,80 +1156,24 @@ testing <- subset(dataset,split==FALSE)
 training$diagnosis <- as.factor(training$diagnosis)
 testing$diagnosis <- as.factor(testing$diagnosis)
 
-training1 <- training
-testing1 <- testing
-training1$diagnosis <- as.numeric(training1$diagnosis) - 1
-testing1$diagnosis <- as.numeric(testing1$diagnosis) - 1
+rf_model <- randomForest(x = training[,-1],
+                         y = training$diagnosis, ntree=50)
+importance(rf_model)
+varImpPlot(rf_model)
 
-model1 <- nnet(
-  diagnosis ~ ., 
-  data = training1, 
-  size = 10,          
-  decay = 0.01,      
-  maxit = 200,        
-  linout = FALSE,
-  trControl = train_control
-)
+control <- rfeControl(functions = caretFuncs, method = "cv", number = 10)
+rfe_model <- rfe(training[, -1], training[, 1], sizes = c(1:ncol(training)-1), 
+                 rfeControl = control, method = "svmRadial")
 
-predictions_prob1 <- predict(model1, newdata = testing1, type = "raw")
-testing1$pred1 <- ifelse(predictions_prob1 > 0.5, 1, 0)
-
-train_predictions_prob1 <- predict(model1, newdata = training1, type = "raw")
-training1$pred1 <- ifelse(train_predictions_prob1 > 0.5, 1, 0)
-
-model2 <- nnet(
-  diagnosis ~ . + pred1, 
-  data = training1, 
-  size = 10,        
-  decay = 0.01,       
-  maxit = 200,     
-  linout = FALSE,
-  trControl = train_control
-)
-
-predictions_prob2 <- predict(model2, newdata = testing1, type = "raw")
-predictions2 <- ifelse(predictions_prob2 > 0.5, 1, 0)
-
-predictions2 <- factor(predictions2, levels = c(0, 1))
-actual <- factor(testing1$diagnosis, levels = c(0, 1))
-
-roc_curve2 <- roc(testing1$diagnosis, predictions_prob2)
-
-plot(roc_curve2, main = "ROC Curve", col = "red", lwd = 2)
-confusion_matrix <- table(Predicted = predictions2, Actual = actual)
-accuracyncc2 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
-precisionncc2 <- confusion_matrix["1", "1"] / sum(confusion_matrix["1", ])
-print(confusion_matrix)
-cat("Accuracy: ", round(accuracyncc2 * 100, 2), "%\n")
-cat("Precision: ", round(precisionncc2 * 100, 2), "%\n")
-
-weights <- model1$wts
-print(weights)
-
-num_features <- ncol(data) - 1  
-num_hidden_units <- 10  
-
-variable_names <- colnames(data)[-which(colnames(data) == "diagnosis")]
-
-input_hidden_size <- (num_features + 1) * num_hidden_units
-
-input_to_hidden_weights <- matrix(weights[1:input_hidden_size], nrow = num_hidden_units, byrow = TRUE)
-
-input_weights_no_bias <- input_to_hidden_weights[, -ncol(input_to_hidden_weights)]
-
-average_abs_weights <- apply(input_weights_no_bias, 2, function(x) mean(abs(x)))
-
-df_avg_weights <- data.frame(Variable = variable_names, Avg_Abs_Weight = average_abs_weights)
-
-ggplot(df_avg_weights, aes(x = Variable, y = Avg_Abs_Weight)) +
-  geom_bar(stat = "identity", fill = "skyblue") +
-  labs(title = "Average Absolute Weights per Input Variable",
-       x = "Input Variables",
-       y = "Average Absolute Weight") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# Results
+print(rfe_model)
+print(predictors(rfe_model))
 ```
 
-Feature importance in neural networks, including those trained using the `nnet` package, is not directly available as it is in more traditional machine learning models like decision trees or random forests. In these models, feature importance is derived from the impact each feature has on the model's decisions, typically through measures such as information gain or Gini impurity. However, neural networks operate through layers of weighted connections and non-linear activations, making it difficult to attribute the importance of individual features in a straightforward manner.
+We see from the results that concave.points_worst, radius_worst, concavity_worst, compactness_mean, and radius_se were the five most important features in the random forest mode. In this case, the table and graph show that all give of these contained a MeanDecreaseGini greater than ten.
 
-Neural networks, such as the nnet model and particularly Multi-Layer Perceptrons (MLPs), consist of complex interactions between features that are transformed through multiple layers. This non-linearity and the distributed nature of the learned weights make it challenging to interpret the effect of each feature directly. These methods generally involve perturbing the data and observing changes in model performance, rather than deriving feature importance directly from the model's parameters. Techniques such as permutation importance, sensitivity analysis, or using model-specific interpretability tools (like SHAP or LIME) are often employed to approximate feature importance, but we were unable to generate these in a timely manner especially since my group was a week behind because of issues with another dataset. Thus, these could be part of our next steps in this project.
+The other model, the svm model, returned, from the rfe method, the most important features radius_worst, concave.points_worst, concavity_worst, radius_se, and compactness_mean. This is the exact same as the rf results, albeit in a different order. Therefore, we can be fairly confident that these are the variables that are valued most by these models.
+
+It should also be noted that all of the models had accuracies of over 90%, which is very good for the machine learning environment as of right now, with many of the models surpassing 97%. This shows that these models all very good at predicting a tumor's nature based on the attributes we gave it.
+
+In conclusion, the best way to predict a tumor's nature is to use a neural classification chain trained on all of the variables that aren't heavily correlated, but the most important variables from some of the top models are radius_worst, concave.points_worst, concavity_worst, radius_se, and compactness_mean. Therefore, if we were only able to use a few metrics, these would be the ones to use.
