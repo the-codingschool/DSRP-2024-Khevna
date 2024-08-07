@@ -880,7 +880,7 @@ Let's find the most precise model after doing this
 ggplot(accuracy_dataframe,aes(x = reorder(Model, Precision, FUN = median),y=Precision,group=Model))+geom_boxplot()
 ```
 
-------------------------------
+------------------------------------------------------------------------
 
 We see that ncc is one of the better models as it is at or very close to the best in terms of both accuracy and precision.
 
@@ -1139,7 +1139,7 @@ ggplot(bothCombined,aes(x=cross,y=Accuracy,group=cross)) + geom_boxplot()
 
 Turns out, the cross validation had no effect in this case.
 
--------------------------------
+------------------------------------------------------------------------
 
 Feature importance in neural networks, including those trained using the `nnet` package, is not directly available as it is in more traditional machine learning models like decision trees or random forests. In these models, feature importance is derived from the impact each feature has on the model's decisions, typically through measures such as information gain or Gini impurity. However, neural networks operate through layers of weighted connections and non-linear activations, making it difficult to attribute the importance of individual features in a straightforward manner.
 
