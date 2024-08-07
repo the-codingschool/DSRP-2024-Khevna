@@ -964,11 +964,13 @@ fviz_pca_var(data.pca, col.var = "cos2",
 fviz_pca_var(clean.data.pca, col.var = "cos2",
              gradient.cols = c("black", "orange", "green"),
              repel = TRUE)
+
+c("diagnosis", "radius_mean", "radius_worst","area_mean","area_worst","perimeter_mean", "perimeter_worst", "concave.points_mean" , "concave.points_worst", "concavity_mean", "concavity_worst", "compactness_mean", "compactness_worst", "concavity_worst"))
 ```
 
-## Why just two components - because it explains most of the variability and easier to work with
+## **Why just two components - because it explains most of the variability and easier to work with**
 
-## Working with least correlated data
+## Working with least Cos 2 value data
 
 ```{r}
 lowcor_shortened_data = select(cleaned_num_data, c("diagnosis", "area_se", "radius_se", "perimeter_se", "texture_mean", "texture_worst", "symmetry_worst", "texture_se", "symmetry_se", "smoothness_se", "symmetry_mean", "concave.points_se", "concavity_se", "smoothness_worst", "compactness_se", "fractal_dimension_worst", "smoothness_mean", "fractal_dimension_se"))
@@ -1045,10 +1047,9 @@ ggplot(data = filtered_results_lowcor, aes( x = Number_of_Neighbours, y = result
        y = "Accuracy") 
 ```
 
-**25 and 28 are optimal numbers according to the table** 
-**highest accuracy 85**
+**25 and 28 are optimal numbers according to the table** **highest accuracy 85**
 
-## Visualizations with highly cor data ##
+## Visualizations with highly cor data
 
 ```{r}
 
@@ -1073,7 +1074,7 @@ model.matrix(~0+., data=shortened_data) %>%
   ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2) + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(angle = 90, hjust = 1, size = 6))
 ```
 
-## Main: Making a KNN Model using highly cor data - Predicting of a cell is cancerous or not ##
+## Main: Making a KNN Model using highly cor data - Predicting of a cell is cancerous or not
 
 ```{r}
 library(caTools)
@@ -1193,7 +1194,114 @@ print(accuracy_22)
 
 ```
 
-## Making a KNN model with all the features ##
+**KNN model with only five variables**
+
+```{r}
+numbers_5 <- c(1:100)
+results_5 <- numeric()
+for (num in numbers_5){
+   knn_model_5 = knn(train = train_data[, c("radius_mean", "concave.points_mean" , "concavity_mean", "concavity_worst", "compactness_mean")], 
+                test = test_data[, c("radius_mean", "concave.points_mean" , "concavity_mean", "concavity_worst", "compactness_mean")], 
+                cl = train_data$diagnosis, 
+                k = num)
+  pred_5 = knn_model_5
+  confusion_matrix_5 = table(test_data$diagnosis, pred_5)
+  accuracy_5 = sum(diag(confusion_matrix_5)) / sum(confusion_matrix_5)
+  results_5 <- c(results_5, accuracy_5)
+  #print(accuracy)
+  }
+#print(accuracy)
+#print(results)
+```
+
+```{r}
+results_df_5 = data.frame(results_5, Number_of_Neighbours = 1:100)
+head(results_df_5, 10)
+```
+
+```{r}
+ggplot(data = results_df_5, aes( x = Number_of_Neighbours, y = results_5)) +
+  geom_line() +
+  labs(title = "Error", 
+       x = "# Neighbours",
+       y = "Accuracy") 
+```
+
+## Making a Logistics Regression Model with Highly Correlated Data
+
+```{r}
+install.packages("tidymodels")
+```
+
+```{r}
+library(readr)
+library(tidyverse)
+library(tidyr)
+installed.packages("tidymodels")
+library(tidymodels)
+install.packages("glmnet")
+library(glmnet)
+#installed.packages("tidymodels")
+#library(tidymodels)
+```
+
+```{r}
+df_lr = chr_shortened_data
+head(df_lr)
+df_lr$diagnosis = as.factor(df_lr$diagnosis) ## making the target variable a factor 
+```
+
+```{r}
+# Split data into train and test
+set.seed(42)
+split <- initial_split(df_lr, prop = 0.8, strata = diagnosis)
+```
+
+```{r}
+train <- split %>% 
+         training()
+test <- split %>% 
+        testing()
+
+?initial_split
+```
+
+```{r}
+# Train a logistic regression model
+#install.packages("glmnet")
+library(glmnet)
+lg_model <- logistic_reg(mixture = 1, penalty = 1) %>%
+  set_engine("glmnet") %>%
+  set_mode("classification") %>%
+  fit(diagnosis ~ ., data = train)
+#https://www.datacamp.com/tutorial/logistic-regression-R
+```
+
+```{r}
+tidy(lg_model)
+```
+
+```{r}
+# Class Predictions
+pred_class <- predict(lg_model,
+                      new_data = test,
+                      type = "class")
+
+# Class Probabilities
+pred_proba <- predict(lg_model,
+                      new_data = test,
+                      type = "prob")
+```
+
+```{r}
+results <- test %>%
+           select(diagnosis) %>%
+           bind_cols(pred_class, pred_proba)
+
+accuracy(results, truth = diagnosis, estimate = .pred_class)
+```
+
+## Making a KNN model with all the features
 
 ```{r}
 set.seed(42)
@@ -1205,7 +1313,6 @@ test_data_all = subset(cleaned_data, split == FALSE)
 ```{r}
 names(cleaned_data)
 ```
-
 
 ```{r}
 numbers_all <- c(1:100)
@@ -1249,13 +1356,13 @@ ggplot(data = filtered_results_all, aes( x = Number_of_Neighbours, y = results_a
        y = "Accuracy") 
 ```
 
-**Creating a KNN model with all features only yeilds an accuracy of highest 0.9292035	at k = 20 - 23 (inclu).** 
+**Creating a KNN model with all features only yeilds an accuracy of highest 0.9292035 at k = 20 - 23 (inclu).**
 
 **Creating a KNN model with highly corelated features yeilds an accuracy of 0.9292035 at k = 20 and 22.**
 
 **We can therefore conculde the least correlated variables are not important to the knn model.**
 
-## Statistical tests - Anova test / t-test 
+## Statistical tests - Anova test / t-test
 
 ```{r}
 library(ggplot2)
@@ -1312,6 +1419,32 @@ Here is the interpretation of output - **Test Type**:
 
         In summary, the t-test results show a significant difference between the means of radius_worst for the two groups, with group M having a higher mean value compared to group B. The results suggest a strong and statistically significant effect.
 
+        ## Anova-Test
+
+```{r}
+anov_test = aov(diagnosis ~ radius_mean + radius_worst + area_mean + area_worst + perimeter_mean + perimeter_worst + concave.points_mean + concave.points_worst + concavity_mean + concavity_worst + compactness_mean + compactness_worst, data = shortened_data)
+
+summary(anov_test)
+
+df_anov_test = as.data.frame(summary(anov_test)[[1]])
+head(df_anov_test, 12)
+```
+
+```{r}
+## important features 
+#radius_mean
+#area_mean
+#perimeter_mean
+#concave.points_mean
+#concavity_mean
+#compactness_mean
+```
+
+```{r}
+df_anov_test = df_anov_test[order(df_anov_test$Pr, decreasing = TRUE),]  
+head(df_anov_test, 12)
+```
+
 ## Doing a T-test for all highly cor variables
 
 ```{r}
@@ -1322,7 +1455,7 @@ names(shortened_data)
 lapply(shortened_data[-1], function(x) t.test(x ~ shortened_data$diagnosis))
 ```
 
-## Making a tibble using the data of HIGHEST CORRELATED VARIABLES from the t_test ##
+## Making a tibble using the data of HIGHEST CORRELATED VARIABLES from the t_test
 
 ```{r}
 library(dbplyr)
@@ -1362,8 +1495,19 @@ head(tidy_results, 12)
 # renaming the columns 
 ```
 
+**Visualization**
 
-## Completing a t-test of the least correlated values ##
+```{r}
+#?ggplot #do the p-value 
+?grom_bar
+ggplot(tidy_results, aes(y = p.value, x = variable_name)) +
+  geom_bar(stat="summary", fun = "mean") + 
+  labs(title = "Counts of Vehicles by Class",
+       x = "Vehicle Class",
+       y = "Count")
+```
+
+## Completing a t-test of the least correlated values
 
 ```{r}
 lowcor_t_test_results = lapply(lowcor_shortened_data[-1], function(x) t.test(x ~ shortened_data$diagnosis))
@@ -1440,7 +1584,7 @@ str(lowcor_tidy_results)
 
         If you had more than two groups (e.g., if you wanted to compare radius_mean across different types of tumors or additional categories), you would use ANOVA. However, in your case, if you only have two groups (M and B), a t-test is appropriate.
 
-## Scatter Plot for Concave Points ##
+## Scatter Plot for Concave Points
 
 ```{r}
 column_names <- colnames(shortened_data)
@@ -1465,7 +1609,7 @@ for(var in column_names){
   plot(scatterplot_concave.points_mean)}}
 ```
 
-## Scatter Plot for Concavity ##
+## Scatter Plot for Concavity
 
 ```{r}
 
@@ -1493,7 +1637,7 @@ for(var in column_names){
 
 ```
 
-## Scatter Plot for Compactness ##
+## Scatter Plot for Compactness
 
 ```{r}
 
@@ -1518,5 +1662,3 @@ for(var in column_names){
          y = "compactness_mean") 
   plot(scatterplot_compactness_mean)}}
 ```
-
-
