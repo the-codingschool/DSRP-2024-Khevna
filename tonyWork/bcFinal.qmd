@@ -18,6 +18,8 @@ The dataset includes a total of 30 features relevant to breast cancer diagnosis,
 Each model's performance is evaluated based on accuracy and precision metrics to determine their effectiveness in classifying breast cancer diagnoses. The models are tested across 200 iterations to validate the stability of their performance and to mitigate the impact of random variability. By systematically comparing these models, this study seeks to identify the most robust approach for breast cancer classification and provide insights into the strengths and limitations of the techniques.
 
 ```{r}
+#! message: FALSE
+
 library(psych)
 library(ggplot2)
 library(dplyr)
@@ -690,7 +692,8 @@ confusion_matrix <- table(Predicted = predictions, Actual = actuals)
 
 accuracyrf1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 precisionrf1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
-
+falseNegativerf1 <- confusion_matrix["B", "M"] / sum(confusion_matrix)
+print(falseNegativerf1)
 print("rf")
 print(confusion_matrix)
 
@@ -703,6 +706,7 @@ confusion_matrix <- table(Predicted = knn_model, Actual = actuals)
 
 accuracyknn1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 precisionknn1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
+falseNegativeknn1 <- confusion_matrix["B", "M"] / sum(confusion_matrix)
 print("knn")
 print(confusion_matrix)
 
@@ -715,8 +719,9 @@ confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
 
 accuracysvm1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 precisionsvm1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
+falseNegativesvm1 <- confusion_matrix["B", "M"] / sum(confusion_matrix)
 
-print("svm,")
+print("svm")
 print(confusion_matrix)
 
 
@@ -725,6 +730,7 @@ predictions <- predict(dt_model, testing, type = "class")
 confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
 accuracydt1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 precisiondt1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
+falseNegativedt1 <- confusion_matrix["B", "M"] / sum(confusion_matrix)
 print("dt")
 print(confusion_matrix)
 
@@ -735,6 +741,7 @@ predictions <- predict(nb_model, testing)
 confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
 accuracynb1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 precisionnb1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
+falseNegativenb1 <- confusion_matrix["B", "M"] / sum(confusion_matrix)
 print("nb")
 print(confusion_matrix)
 
@@ -750,6 +757,7 @@ confusion_matrix <- table(Predicted = predictions, Actual = testing$diagnosis)
 accuracylr1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 precisionlr1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
 print("lr")
+falseNegativelr1 <- confusion_matrix["B", "M"] / sum(confusion_matrix)
 print(confusion_matrix)
 
 
@@ -760,6 +768,7 @@ predictions <- predict(ab_model, newdata = testing)
 confusion_matrix <- table(Predicted = predictions$class, Actual = testing$diagnosis)
 accuracyab1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 precisionab1 <- confusion_matrix["M", "M"] / sum(confusion_matrix["M", ])
+falseNegativeab1 <- confusion_matrix["B", "M"] / sum(confusion_matrix)
 
 print("ab")
 print(confusion_matrix)
@@ -791,6 +800,7 @@ actual <- factor(testing1$diagnosis, levels = c(0, 1))
 confusion_matrix <- table(Predicted = predictions, Actual = actual)
 accuracygb1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 precisiongb1 <- confusion_matrix["1", "1"] / sum(confusion_matrix["1", ])
+falseNegativegb1 <- confusion_matrix["0", "1"] / sum(confusion_matrix)
 print("gb")
 print(confusion_matrix)
 
@@ -813,6 +823,7 @@ actual <- factor(testing1$diagnosis, levels = c(0, 1))
 confusion_matrix <- table(Predicted = predictions, Actual = actual)
 accuracymlp1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 precisionmlp1 <- confusion_matrix["1", "1"] / sum(confusion_matrix["1", ])
+falseNegativemlp1 <- confusion_matrix["0", "1"] / sum(confusion_matrix)
 print("mlp")
 print(confusion_matrix)
 
@@ -849,6 +860,8 @@ actual <- factor(testing1$diagnosis, levels = c(0, 1))
 confusion_matrix <- table(Predicted = predictions2, Actual = actual)
 accuracyncc1 <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
 precisionncc1 <- confusion_matrix["1", "1"] / sum(confusion_matrix["1", ])
+falseNegativencc1 <- confusion_matrix["0", "1"] / sum(confusion_matrix)
+print(falseNegativencc1)
 print("ncc")
 print(confusion_matrix)
 
@@ -861,10 +874,15 @@ accuracies <- tibble(
   Precision = c(round(precisionrf1 * 100, 2), round(precisionknn1 * 100, 2), round(precisionsvm1 * 100, 2),
                     round(precisiondt1 * 100, 2), round(precisionnb1 * 100, 2), round(precisionlr1 * 100, 2),
                     round(precisionab1 * 100, 2), round(precisiongb1 * 100, 2), round(precisionncc1 * 100, 2),
-                    round(precisionmlp1 * 100, 2)))
+                    round(precisionmlp1 * 100, 2)),
+  False_Negative = c(round(falseNegativerf1 * 100, 2), round(falseNegativeknn1 * 100, 2), round(falseNegativesvm1 * 100, 2),
+                    round(falseNegativedt1 * 100, 2), round(falseNegativenb1 * 100, 2), round(falseNegativelr1 * 100, 2),
+                    round(falseNegativeab1 * 100, 2), round(falseNegativegb1 * 100, 2), round(falseNegativencc1 * 100, 2),
+                    round(falseNegativemlp1 * 100, 2))
+  )
 accuracies$seed = seed
 
-accuracy_precision_dataframe <- bind_rows(accuracy_dataframe,accuracies)
+accuracy_precision_dataframe <- bind_rows(accuracy_precision_dataframe,accuracies)
 
 }
 accuracy_precision_dataframe
@@ -882,9 +900,15 @@ Let's find the most precise model after doing this
 ggplot(accuracy_precision_dataframe,aes(x = reorder(Model, Precision, FUN = median),y=Precision,group=Model))+geom_boxplot() + labs(x="Model")
 ```
 
+We should also check the false negative rate because it is much, much more detrimental than a false positive. Therefore, we want the lowest false negative rate.
+
+```{r}
+ggplot(accuracy_precision_dataframe,aes(x = reorder(Model, False_Negative, FUN = median),y=False_Negative,group=Model))+geom_boxplot() + labs(x="Model")
+```
+
 ------------------------------------------------------------------------
 
-We see that ncc is one of the better models as it is at or very close to the best in terms of both accuracy and precision. We can now look at this best model with cross validation, which we didn't explicitly include earlier.
+We see that ncc is one of the better models as it is at or very close to the best in terms of both accuracy and precision. It also has the lowest false negative rate, which is very good. We can now look at this best model with cross validation, which we didn't explicitly include earlier.
 
 ```{r}
 train_control <- trainControl(
