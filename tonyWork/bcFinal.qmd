@@ -85,7 +85,7 @@ We normalize the data for better classification
 data <- cbind(data[1],as.data.frame(scale(data[,-1])))
 ```
 
-To make sure there not any highly correlated variables, we can calculate the correlation between every numerical variable and then plot those that are about 0.9.
+To make sure there not any highly correlated variables, we can calculate the correlation between every numerical variable and then plot those that are above 0.9.
 
 ```{r}
 numerical_data <- data[,2:31]
@@ -668,7 +668,7 @@ ggplot(big_accuracy_dataframe_standard, aes(x = Metric, y = Accuracy)) +
   theme_minimal()
 ```
 
-Now, we know that we can use the subset of data that we got after removing all the highly correlated variables as the accuracy stays roughly the same. We cannot do a t-test on this data because each seed uses the same data so the t-test is not applicable. Now, let's get some statistics about the machine learning results after only using the subset. When we compared using all the variables and just using the subset, we only considered accuracy. Now, we should also consider precision.
+Now, we know that we can use the subset of data that we got after removing all the highly correlated variables as the accuracy stays roughly the same. We cannot do a t-test on this data because each seed uses the same data so the t-test is not applicable. Now, let's get some statistics about the machine learning results after only using the subset. When we compared using all the variables and just using the subset, we only considered accuracy. Now, we should also consider precision and false negatives.
 
 ```{r}
 accuracy_precision_dataframe <- tibble()
@@ -973,6 +973,11 @@ precisionncc2 <- confusion_matrix["1", "1"] / sum(confusion_matrix["1", ])
 print(confusion_matrix)
 cat("Accuracy: ", round(accuracyncc2 * 100, 2), "%\n")
 cat("Precision: ", round(precisionncc2 * 100, 2), "%\n")
+
+auc_value <- auc(roc_curve2)
+
+# Print the AUC value
+cat("AUC: ", round(auc_value, 4), "\n")
 ```
 
 Now let's compare the two by repeating this 200 times.
@@ -1112,7 +1117,7 @@ Turns out, the cross validation had no effect in this case. When we test it with
 
 Feature importance in neural networks, including those trained using the `nnet` package, is not directly available as it is in more traditional machine learning models like decision trees or random forests. In these models, feature importance is derived from the impact each feature has on the model's decisions, typically through measures such as information gain or meanDecreaseGini . However, neural networks operate through layers of weighted connections and non-linear activations, making it difficult to attribute the importance of individual features in a straightforward manner.
 
-Neural networks, such as the nnet model and particularly Multi-Layer Perceptrons (MLPs), consist of complex interactions between features that are transformed through multiple layers. This non-linearity and the distributed nature of the learned weights make it challenging to interpret the effect of each feature directly. These methods generally involve perturbing the data and observing changes in model performance, rather than deriving feature importance directly from the model's parameters. Techniques such as permutation importance, sensitivity analysis, or using model-specific interpretability tools (like SHAP or LIME) are often employed to approximate feature importance, but we were unable to generate these in a timely manner especially since my group was a week behind because of issues with another dataset. Thus, these could be part of our next steps in this project.
+Neural networks, such as the nnet model and particularly Multi-Layer Perceptrons (MLPs), consist of complex interactions between features that are transformed through multiple layers. This non-linearity and the distributed nature of the learned weights make it challenging to interpret the effect of each feature directly. These methods generally involve perturbing the data and observing changes in model performance, rather than deriving feature importance directly from the model's parameters. Techniques such as permutation importance, sensitivity analysis, or using model-specific interpretability tools (like SHAP or LIME) are often employed to approximate feature importance, but we were unable to generate these in a timely manner especially since we were a week behind because of issues with another dataset. Thus, these could be part of our next steps in this project.
 
 We also saw that the random forest model was pretty high in terms of both precision and accuracy. Thus, we can explore this instead of see what features were important in this model as the only top performers would take much more difficult measures to analyze. We also saw that the svm model had great performances as well. Thus, we should also analyze the feature importance from this model. We can do this by using rfe and with cross-validation.
 
