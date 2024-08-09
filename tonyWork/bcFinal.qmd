@@ -67,7 +67,7 @@ setwd("C:/Users/Tony/OneDrive/Documents/tonyR/DSRP-2024-Khevna/tonyWork")
 data <- read.csv("../data/breast_cancer_classification_data.csv")
 ```
 
-Clean Data
+## Feature Selection
 
 ```{r}
 data <- data[,c(-1,-33)]
@@ -119,7 +119,11 @@ correlation <- cor(data[,-1],use = "complete.obs")
 ggcorrplot(correlation > 0.9) 
 ```
 
-As seen in the graph, there are none. We can now use this subset data on all 10 of the different models: Random Forest, K-Nearest Neighbors, Support Vector Machines, Decision Trees, Naive Bayes, Logistic Regression, Boosting, Gradient Boosting Machines, Multi-Layer Perceptrons, and Neural Classification Chains. These models all have their unique way of classifying.
+As seen in the graph, there are none.
+
+## Model Comparison
+
+We can now use this subset data on all 10 of the different models: Random Forest, K-Nearest Neighbors, Support Vector Machines, Decision Trees, Naive Bayes, Logistic Regression, Boosting, Gradient Boosting Machines, Multi-Layer Perceptrons, and Neural Classification Chains. These models all have their unique way of classifying.
 
 1.  Random Forest creates multiple decision trees from random subsets of data and features. The final prediction comes from averaging the results from all the trees.
 2.  K-Nearest Neighbors classifies data by finding the "k" closest neighbors by distance. The label is determined by the majority vote among these neighbors.
@@ -1119,7 +1123,9 @@ Turns out, the cross validation had no effect in this case. When we test it with
 
 ------------------------------------------------------------------------
 
-Next up is feature importance. Feature importance in neural networks, including those trained using the `nnet` package, is not directly available as it is in more traditional machine learning models like decision trees or random forests. In these models, feature importance is derived from the impact each feature has on the model's decisions, typically through measures such as information gain or meanDecreaseGini . However, neural networks operate through layers of weighted connections and non-linear activations, making it difficult to attribute the importance of individual features in a straightforward manner.
+## Feature Importance
+
+Feature importance in neural networks, including those trained using the `nnet` package, is not directly available as it is in more traditional machine learning models like decision trees or random forests. In these models, feature importance is derived from the impact each feature has on the model's decisions, typically through measures such as information gain or meanDecreaseGini . However, neural networks operate through layers of weighted connections and non-linear activations, making it difficult to attribute the importance of individual features in a straightforward manner.
 
 Neural networks, such as the nnet model and particularly Multi-Layer Perceptrons (MLPs), consist of complex interactions between features that are transformed through multiple layers. This non-linearity and the distributed nature of the learned weights make it challenging to interpret the effect of each feature directly. These methods generally involve perturbing the data and observing changes in model performance, rather than deriving feature importance directly from the model's parameters. Techniques such as permutation importance, sensitivity analysis, or using model-specific interpretability tools (like SHAP or LIME) are often employed to approximate feature importance, but we were unable to generate these in a timely manner especially since we were a week behind because of issues with another dataset. Thus, these could be part of our next steps in this project.
 
@@ -1153,5 +1159,7 @@ We see from the results that concave.points_worst, radius_worst, concavity_worst
 The other model, the svm model, returned, from the rfe method, the most important features radius_worst, concave.points_worst, concavity_worst, radius_se, and compactness_mean. This is the exact same as the rf results, albeit in a different order. Therefore, we can be fairly confident that these are the variables that are valued most by these models.
 
 It should also be noted that all of the models had accuracies of over 90%, which is very good for the machine learning environment as of right now, with many of the models surpassing 97%. This shows that these models all very good at predicting a tumor's nature based on the attributes we gave it.
+
+## Conclusion
 
 In conclusion, the best way to predict a tumor's nature is to use a neural classification chain trained on all of the variables that aren't heavily correlated, but the most important variables from some of the top models are radius_worst, concave.points_worst, concavity_worst, radius_se, and compactness_mean. Therefore, if we were only able to use a few metrics, these would be the ones to use.
