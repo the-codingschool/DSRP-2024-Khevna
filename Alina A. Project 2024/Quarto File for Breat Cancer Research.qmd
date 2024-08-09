@@ -24,33 +24,23 @@ data = read.csv("/Users/alinaahmed/Documents/DRSP Lung Cancer Research/Alina A. 
 Data Cleaning:
 
 ```{r}
+
+# data <- select(data, -contains("X"))
+# count null values
 col_na_count <- colSums(is.na(data))
 print(col_na_count)
-# Remove the 'X' column
-
+# cleaning the column names
 data = clean_names(data)
 names(data)
-
-#569 NA values found
-nrow(data)
-
-data = na.omit(data)
-str(data) #'data.frame':	0 obs. of  33 variables:
-nrow(data)
-mean(data$perimeter_mean)
-mean(data$radius_mean)
-mean(data$area_mean)
-
-
-# everything is fine, no missing values so far
-
-summary(data)
+data <- select(data, -contains("X"))
+# count null values
+col_na_count <- colSums(is.na(data))
+print(col_na_count)
 ```
 
 In order to remove possible skews/biases in the results, I took 100 samples of benign cases, as well as 100 samples of malignant cases.
 
 ```{r}
-
 malignant_data<- filter(breast_cancer_classification_data, diagnosis == "M")
 benign_data <- filter(breast_cancer_classification_data, diagnosis == "B")
 
@@ -65,6 +55,11 @@ final_sample <- bind_rows(malignant_data, benign_data)
 dim(data)
 # Check the distribution of diagnoses in the final sample
 table(data$diagnosis)
+
+# Check the dimensions of the final sample
+dim(final_sample)
+# Check the distribution of diagnoses in the final sample
+table(final_sample$diagnosis)
 ```
 
 Bar Plot used to calculate the range of Tumor Perimeters
@@ -127,6 +122,9 @@ ggplot(correlation_melted, aes(x=Var2, y=Var1, fill=value)) +
 Code for a Chi-Square Test to figure out the exact P-value of my findings
 
 ```{r}
+install.packages("chisquare")
+# load the MASS package
+
 print(str(selected_data))
 
 selected_data
@@ -139,6 +137,10 @@ statistical_data1 = table(selected_data$area_mean,selected_data$concavity_mean)
 
 print(statistical_data1)
 
+### chisq of area + concave = 0.1
+
+
+
 # applying chisq.test() function
 print(chisq.test(statistical_data1))
 ### X-squared = 288198, df = 288368, p-value = 0.588
@@ -147,7 +149,7 @@ statistical_data2 = data.frame(selected_data$concavity_mean,selected_data$compac
 print(statistical_data2)
 print(chisq.test(statistical_data2))
 
-## X-squared = 6.3622, df = 568, p-value = 1
+## X-squared = 6.3622, df = 568, p-value = 1 for concavity + compactness
 ```
 
 Made a training set data and testing set data (splitting).
@@ -176,41 +178,33 @@ K-fold cross validation test
 ```{r}
 library(caret)
 library(randomForest)
-# Load the dataset
-data <-  read.csv("/Users/alinaahmed/Documents/DRSP Lung Cancer Research/Alina A. Project 2024/Data Coding for Breast Cancer/breast_cancer_classification_data.csv")
-
-# Drop column X from the dataset
-data <- data[, !(names(data) %in% "X")]
-
-# Convert the diagnosis column to a factor
-data$diagnosis <- as.factor(data$diagnosis)
-
-str(data)
-
-# Check for missing values
-missing_counts <- sapply(data, function(x) sum(is.na(x)))
-print(missing_counts)
-
-# Remove rows with any missing values
-data_clean <- na.omit(data)
-
-
-
-# Verify that the column has been dropped
-print(names(data_clean))
-
-# Verify there are no missing values
-print(sum(is.na(data_clean)))
 
 # Set up training control for k-fold cross-validation
 k <- 10
 train_control <- trainControl(method = "cv", number = k)
-
-# Train the model with cleaned data
-model <- train(diagnosis ~ ., data = data_clean, method = "rf", trControl = train_control)
-
-# Print the model results
-print(model)
+# Convert the target variable to binary (1 if M, 0 if B)
+data$diagnosis <- ifelse(data$diagnosis == "M", 1, 0)
+# Set a seed for reproducibility
+set.seed(512)
+# Split the data: 80% training, 20% testing
+trainIndex <- createDataPartition(data$diagnosis, p = .8, list = FALSE, times = 1)
+cancerTrain <- data[trainIndex, ]
+cancerTest <- data[-trainIndex, ]
+# Training model
+cancerTrain <- na.omit(cancerTrain)
+logistic_model <- train(diagnosis ~ ., data = cancerTrain, method = "glm", family =
+                          "binomial", trControl = train_control)
+# Summary – provides the equation of your model (y = mx + b)
+summary(logistic_model)
+# Predict on the testing set
+predictions <- predict(logistic_model, newdata = cancerTest)
+# Convert probabilities to binary predictions
+binary_predictions <- ifelse(predictions >= 0.5, 1, 0)
+# Confusion matrix
+conf_matrix <- confusionMatrix(as.factor(binary_predictions),
+                               as.factor(cancerTest$diagnosis))
+# Print the confusion matrix
+print(conf_matrix)
 ```
 
 Logistical Model Test
@@ -253,4 +247,52 @@ logistic_model
 
 # Summary
 summary(logistic_model)
+```
+
+Receive confirmation from Kehvna.
+
+```{r}
+# Load the dataset
+data <- read.csv("/Users/alinaahmed/Documents/DRSP Lung Cancer Research/Alina A. Project 2024/Data Coding for Breast Cancer/breast_cancer_classification_data.csv")
+
+# Drop column X from the dataset
+data <- data[, !(names(data) %in% "X")]
+
+# Convert the diagnosis column to a factor
+data$diagnosis <- as.factor(data$diagnosis)
+
+str(data)
+
+# Check for missing values
+missing_counts <- sapply(data, function(x) sum(is.na(x)))
+print(missing_counts)
+
+# Remove rows with any missing values
+data_clean <- na.omit(data)
+
+# Verify that the column has been dropped
+print(names(data_clean))
+
+# Verify there are no missing values
+print(sum(is.na(data_clean)))
+
+# Set up training control for k-fold cross-validation
+k <- 10
+train_control <- trainControl(method = "cv", number = k)
+
+# Train the model with cleaned data using logistic regression
+model <- train(diagnosis ~ ., data = data_clean, method = "glm", family = "binomial", trControl = train_control)
+
+print(model)
+```
+
+```{r}
+
+summary(logistic_model)
+
+predict_reg <- predict(logistic_model,
+                       test_reg, type = "response")
+predict_reg
+
+
 ```
