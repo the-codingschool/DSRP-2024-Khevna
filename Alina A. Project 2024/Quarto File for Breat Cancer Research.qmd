@@ -13,6 +13,13 @@ library(dplyr)
 library(janitor)
 library(tidyr)
 library(titanic)
+library(chisquare)
+library(tidyverse)
+library(infer)
+library(mosaic)
+library(Stat2Data)
+library(skimr)
+library(pROC)
 ```
 
 My Dataset Path I used:
@@ -24,8 +31,6 @@ data = read.csv("/Users/alinaahmed/Documents/DRSP Lung Cancer Research/Alina A. 
 Data Cleaning:
 
 ```{r}
-
-# data <- select(data, -contains("X"))
 # count null values
 col_na_count <- colSums(is.na(data))
 print(col_na_count)
@@ -126,36 +131,35 @@ install.packages("chisquare")
 # load the MASS package
 
 print(str(selected_data))
-
 selected_data
 
-# Create a data frame from the main data set.
-statistical_data1 = data.frame(selected_data$area_mean,selected_data$concavity_mean)
-
-# Create a contingency table with the needed variables.		 
-statistical_data1 = table(selected_data$area_mean,selected_data$concavity_mean)
-
+statistical_data1 = data.frame(selected_data$perimeter_mean,selected_data$concavity_mean)
+statistical_data1 = table(selected_data$perimeter_mean,selected_data$concavity_mean)
 print(statistical_data1)
 
-### chisq of area + concave = 0.1
 
-
-
-# applying chisq.test() function
-print(chisq.test(statistical_data1))
-### X-squared = 288198, df = 288368, p-value = 0.588
-
-statistical_data2 = data.frame(selected_data$concavity_mean,selected_data$compactness_mean)
+statistical_data2 = data.frame(selected_data$perimeter_mean,selected_data$compactness_mean)
+statistical_data2 = table(selected_data$perimeter_mean,selected_data$compactness_mean)
 print(statistical_data2)
 print(chisq.test(statistical_data2))
 
-## X-squared = 6.3622, df = 568, p-value = 1 for concavity + compactness
+statistical_data3 = data.frame(selected_data$concavity_mean,selected_data$compactness_mean)
+print(statistical_data3)
+
+# applying chisq.test() function
+print(chisq.test(statistical_data1))
+#p-value = 0.3 for perimeter + concavity
+print(chisq.test(statistical_data2))
+# p-value = 0.3 for perimeter + compactness
+print(chisq.test(statistical_data3))
+
+# p-value = 1 for concavity + compactness
 ```
 
 Made a training set data and testing set data (splitting).
 
 ```{r}
- library(tidyverse)
+library(tidyverse)
 library(infer)
 library(mosaic)
 library(Stat2Data)
@@ -174,82 +178,6 @@ testing <- data %>%
 ```
 
 K-fold cross validation test
-
-```{r}
-library(caret)
-library(randomForest)
-
-# Set up training control for k-fold cross-validation
-k <- 10
-train_control <- trainControl(method = "cv", number = k)
-# Convert the target variable to binary (1 if M, 0 if B)
-data$diagnosis <- ifelse(data$diagnosis == "M", 1, 0)
-# Set a seed for reproducibility
-set.seed(512)
-# Split the data: 80% training, 20% testing
-trainIndex <- createDataPartition(data$diagnosis, p = .8, list = FALSE, times = 1)
-cancerTrain <- data[trainIndex, ]
-cancerTest <- data[-trainIndex, ]
-# Training model
-cancerTrain <- na.omit(cancerTrain)
-logistic_model <- train(diagnosis ~ ., data = cancerTrain, method = "glm", family =
-                          "binomial", trControl = train_control)
-# Summary – provides the equation of your model (y = mx + b)
-summary(logistic_model)
-# Predict on the testing set
-predictions <- predict(logistic_model, newdata = cancerTest)
-# Convert probabilities to binary predictions
-binary_predictions <- ifelse(predictions >= 0.5, 1, 0)
-# Confusion matrix
-conf_matrix <- confusionMatrix(as.factor(binary_predictions),
-                               as.factor(cancerTest$diagnosis))
-# Print the confusion matrix
-print(conf_matrix)
-```
-
-Logistical Model Test
-
-```{r}
-# Installing the package
-install.packages("dplyr")
-
-# Loading package
-library(dplyr)
-
-# Summary of dataset in package
-summary(data_clean)
-
-# Installing the package
-
-# For Logistic regression
-install.packages("caTools") 
-
-# For ROC curve to evaluate model
-install.packages("ROCR")	 
-
-# Loading package
-library(caTools)
-library(ROCR)
-
-# Splitting dataset
-split <- sample.split(data_clean, SplitRatio = 0.8)
-split
-
-train_reg <- subset(data_clean, split == "TRUE")
-test_reg <- subset(data_clean, split == "FALSE")
-
-# Training model
-
-logistic_model <- glm(diagnosis~ concavity_mean + perimeter_mean,
-                      data = train_reg,
-                      family = "binomial")
-logistic_model
-
-# Summary
-summary(logistic_model)
-```
-
-Receive confirmation from Kehvna.
 
 ```{r}
 # Load the dataset
@@ -287,6 +215,7 @@ print(model)
 ```
 
 ```{r}
+library(pROC)
 
 summary(logistic_model)
 
@@ -294,5 +223,17 @@ predict_reg <- predict(logistic_model,
                        test_reg, type = "response")
 predict_reg
 
+# Compute ROC curve
+roc_curve <- roc(test_data$diagnosis, predictions)
+plot(roc_curve)
 
+# Print AUC
+print(paste("AUC:", auc(roc_curve)))
+# Plot ROC curve with additional customization
+plot(roc_curve, 
+     main = "ROC Curve for Diagnosis Prediction", 
+     col = "black", 
+     lwd = 2, 
+     xlab = "False Positive Rate",  # X-axis label
+     ylab = "True Positive Rate")    # Y-axis label
 ```

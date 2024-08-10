@@ -623,3 +623,4 @@ plot(roc_curve,
      xlab = "False Positive Rate",  # X-axis label
      ylab = "True Positive Rate")    # Y-axis label
 
+view(data_clean)
