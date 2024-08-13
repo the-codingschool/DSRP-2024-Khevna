@@ -1,0 +1,276 @@
+---
+title: "Cancerous Cells are Large in Size, and High in Concavity and Compactness"
+author: "Alina Ahmed"
+format: html
+editor: visual
+---
+
+# Abstract
+
+Many individuals have been diagnosed with cancer or have even known someone who has had breast cancer. This common knowledge on something really detrimental to one's health is something I wanted to study deeper into an draw conclusions as to what could be done. When over 300 thousand Americans alone are diagnosed with this cancer, It is something that should be looked into on a deeper level. This is when the Breast Cancer Data set came into play.
+
+Through this breast cancer data set, I wanted to dive deeper into the question: "What aspects of a tumor suddenly make it cancerous?" To my surprise, I found many correlations and was able to draw a final conclusion. I first created 3 box plots demonstrating any significant differences between the size such as perimeter, area, and radius, and also the diagnosis, which was my target variable. Once I found a correlation between these factors, I dived further and proceeded to make a heat map, and look for any additional patterns I may notice. I created this heat map using all the size dimensions given to me in the data set. Once I found all my patterns, I conducted a Chi-Square analysis to find the strength of correlation between these factors. Then, I split my data and performed a cross fold validation. Finally, I created an ROC curve and with logistic regression, I created a model that could possibly predict a cancer through the size and characteristics of a tumor.
+
+Using boxplots, I arranged 3 graphs to show the mean dimensions of the area, perimeter, and radius of both benign and malignant cells. The box plots also contained error bars which showed me any significant changes. I noticed that for all three dimensions, Malignant cells were significantly larger than benign cells. Next, I created a heat map using the other dimensions in the data set to create a heat map and find any patterns that possibly correlate with the size of the tumor. To my surprise, I noticed the following: Concavity and Compactness are strongly correlated together, along with the size of the size of the cell. The larger the cell, the larger to concavity and compactness. I also preformed a chi-square analysis, and found that concavity and compactness have a p-value of 1, and the perimeter of concavity along with the perimeter and compactness have a p-value of 3, making it a moderate correlation. Once I was finished with this, I split my data into a training and testing data set, and performed a cross-fold validation. I was surprised to see a 94% accuracy with this. Finally, through my ROC curve, I found that my model was able to be 98% accurate, meaning that this is very close to fool-proof in predicting a cancer.
+
+Overall, I came to the conclusion that cancerous cells are larger in size, and demonstrate a higher concavity along with compactness within it. Through these findings, we can answer some questions people may have as to why they may have cancer while others don't. We can also help people detect cancer faster as we look into these dimensions, and allow a person to get treatment before the cancer grows to be much larger and often times irreversible.
+
+## Background
+
+Many individuals have been diagnosed with cancer or have even known someone who has had breast cancer. This common knowledge on something really detrimental to one's health is something I wanted to study deeper into an draw conclusions as to what could be done. When over 300 thousand Americans alone are diagnosed with this cancer, It it can be really helpful to figure out whether a tumor is cancerous as early as possible since treatment at an earlier stage is much more efficient . This is when the Breast Cancer Data set came into play for my research.
+
+The Breast Cancer Data set includes 569 cases of people who have been found to have a tumor in their breast. The variables among this data include all of the dimensions and other characteristics of their tumor along with their diagnosis. Through this data, I wanted to dive deeper into the question: "What aspects of a tumor suddenly make it cancerous?" With the use of analyzing the various size and dimensions of the tumors, To my surprise, I found many correlations and was able to draw a final conclusion. The following part of this report includes my graphs, steps, and results.
+
+## Results
+
+First I loaded all the packages I needed to use for this project.
+
+```{r, echo=FALSE}
+library(ggplot2)
+library(dplyr)
+library(janitor)
+library(tidyr)
+library(titanic)
+library(chisquare)
+library(tidyverse)
+library(infer)
+library(mosaic)
+library(Stat2Data)
+library(skimr)
+library(pROC)
+```
+
+The Breast Cancer Dataset I Used:
+
+```{data = read.csv("/Users/alinaahmed/Documents/DRSP Lung Cancer Research/Alina A. Project 2024/Data Coding for Breast Cancer/breast_cancer_classification_data.csv")}
+```
+
+I started out with cleaning out my data and removing any missing values.
+
+```{r echo = FALSE, error=FALSE}
+# count null values
+col_na_count <- colSums(is.na(data))
+print(col_na_count)
+# cleaning the column names
+data = clean_names(data)
+names(data)
+data <- select(data, -contains("X"))
+# count null values
+col_na_count <- colSums(is.na(data))
+print(col_na_count)
+```
+
+In order to remove possible skews/biases in the results, I took 100 samples of benign cases, as well as 100 samples of malignant cases.
+
+```{r, echo=FALSE}
+malignant_data<- filter(breast_cancer_classification_data, diagnosis == "M")
+benign_data <- filter(breast_cancer_classification_data, diagnosis == "B")
+
+# Randomly sample 100 rows from each filtered dataset
+malignant_data <- sample_n(malignant_data, 100)
+benign_data <- sample_n(benign_data, 100)
+
+# Combine the samples into one dataframe
+final_sample <- bind_rows(malignant_data, benign_data)
+  
+# Check the dimensions of the final sample
+dim(data)
+# Check the distribution of diagnoses in the final sample
+table(data$diagnosis)
+
+# Check the dimensions of the final sample
+dim(final_sample)
+# Check the distribution of diagnoses in the final sample
+table(final_sample$diagnosis)
+```
+
+I used a bar plot to find the range oand differences between tumor perimeters. I found that the variability was at a minimum and the mean malignant perimeter happened to be significantly larger than benign perimeters (can be seen in the error bars).
+
+```{r, echo= FALSE}
+ggplot(final_sample, aes(x=diagnosis, y=perimeter_mean))+ 
+  geom_bar(stat="summary", fill="lightsalmon", alpha=1)+
+  geom_errorbar(stat = "summary", width=0.2,colour="black", size=0.5)+
+  theme_minimal() + 
+  labs(title="Bar Graph of Average Tumor Perimeter Based on Diagnosis", 
+       x="Diagnosis", 
+       y="Perimeter Mean") + 
+  ylim(0, 150)
+echo = FALSE
+```
+
+Next, I created a second bar plot to find the range and differences among the tumor radius. Similar to the previous bar plot, I also found little variability, along with a larger radius in the malignant tumors.
+
+```{r echo = FALSE}
+ggplot(final_sample, aes(x=diagnosis, y=radius_mean))+ 
+  geom_bar(stat = "summary", fill ="olivedrab2") +
+  geom_errorbar(stat = "summary", width=0.2,colour="black", size=0.5)+
+  theme_minimal() + 
+  labs(title="Bar Graph of Average Tumor Radius Based on Diagnosis", 
+       x="Diagnosis", 
+       y="Average Radius") + 
+  ylim(0, 25)
+```
+
+Lastly, I created a third bar plot which involved the area of the tumors. Once again, I noticed that the area was much larger in malignant cells than in benign cells. Through these three bar plots, I began noticing a pattern.
+
+```{r echo = FALSE}
+ggplot(final_sample, aes(x=diagnosis, y=area_mean))+ 
+  geom_bar(stat = "summary", fill ="plum1") +
+  geom_errorbar(stat = "summary", width=0.2,colour="black", size=0.5)+
+  theme_minimal() + 
+  labs(title="Bar Graph of Average Tumor Area Based on Diagnosis", 
+       x="Diagnosis", 
+       y="Area Mean") + 
+  ylim(0, 1000)
+```
+
+Once I was finished, I wanted to figure out which variables I wanted to include in my heat map based on my findings, and created a correlation matrix with them.
+
+```{r, echo= false}
+selected_data <- final_sample[, c("perimeter_mean", "radius_mean", "area_mean","texture_mean", "concavity_mean", "smoothness_mean","compactness_mean", "symmetry_mean")]
+correlation_matrix <- cor(selected_data)
+correlation_melted <- melt(correlation_matrix)
+```
+
+This heat map was created to find any correlations with the size of the tumors. I was surprised to find that compactness and concavity showed a deeper color of green, meaning that there was a correlation that was possibly there.
+
+```{r echo = FALSE}
+ggplot(correlation_melted, aes(x=Var2, y=Var1, fill=value)) +
+  geom_tile() +
+  scale_fill_gradient2(low="oldlace", high="palegreen4", mid="white", midpoint=0, limit=c(-1,1)) +
+  theme_minimal() +
+  labs(x="Features", y= "Features", fill="Correlation") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Once I found this correlation, I performed a chi-square analysis to find the p-value and strength of the correlation. I used the perimeter as a size dimension and placed it against the concavity and compactness independently. Between the concavity and perimeter, there was a p-value of 0.3, and with compactness and perimeter, there was a p-value of 0.3. This meant that there was a moderate correlation. Along with this, I found that concavity and compactness has a p-value of 1, meaning there was a very strong correlation.
+
+```{r, echo= F}
+install.packages("chisquare")
+# load the MASS package
+
+print(str(selected_data))
+selected_data
+
+statistical_data1 = data.frame(selected_data$perimeter_mean,selected_data$concavity_mean)
+statistical_data1 = table(selected_data$perimeter_mean,selected_data$concavity_mean)
+print(statistical_data1)
+
+
+statistical_data2 = data.frame(selected_data$perimeter_mean,selected_data$compactness_mean)
+statistical_data2 = table(selected_data$perimeter_mean,selected_data$compactness_mean)
+print(statistical_data2)
+print(chisq.test(statistical_data2))
+
+statistical_data3 = data.frame(selected_data$concavity_mean,selected_data$compactness_mean)
+print(statistical_data3)
+
+# applying chisq.test() function
+print(chisq.test(statistical_data1))
+#p-value = 0.3 for perimeter + concavity
+print(chisq.test(statistical_data2))
+# p-value = 0.3 for perimeter + compactness
+print(chisq.test(statistical_data3))
+
+# p-value = 1 for concavity + compactness
+```
+
+After my findings, I made a training set data and testing set data (splitting). I split between a ratio of 9:1.
+
+```{r, echo=F}
+library(tidyverse)
+library(infer)
+library(mosaic)
+library(Stat2Data)
+library(skimr)
+
+
+view(data)
+set.seed(569)
+which_train <- sample(1:569, size = 512, replace = FALSE)
+
+training <- data %>%
+  slice(which_train)
+
+testing <- data %>%
+  slice(-which_train)
+```
+
+Next, I performed a K-Fold Cross Validation test between the benign and malignant cases. I used the value of 10 to perform the test, and found a 94% accuracy with this test.
+
+```{r, echo=false, warning = false}
+# Load the dataset
+data <- read.csv("/Users/alinaahmed/Documents/DRSP Lung Cancer Research/Alina A. Project 2024/Data Coding for Breast Cancer/breast_cancer_classification_data.csv")
+
+# Drop column X from the dataset
+data <- data[, !(names(data) %in% "X")]
+
+# Convert the diagnosis column to a factor
+data$diagnosis <- as.factor(data$diagnosis)
+
+str(data)
+
+# Check for missing values
+missing_counts <- sapply(data, function(x) sum(is.na(x)))
+print(missing_counts)
+
+# Remove rows with any missing values
+data_clean <- na.omit(data)
+
+# Verify that the column has been dropped
+print(names(data_clean))
+
+# Verify there are no missing values
+print(sum(is.na(data_clean)))
+
+# Set up training control for k-fold cross-validation
+k <- 10
+train_control <- trainControl(method = "cv", number = k)
+
+# Train the model with cleaned data using logistic regression
+model <- train(diagnosis ~ ., data = data_clean, method = "glm", family = "binomial", trControl = train_control)
+
+print(model)
+```
+
+Lastly, I wanted to create a prediction model that can be used to predict the chances of someone getting cancer through the size of their tumor. I used logistic regression to do so. Along with that, I created an ROC curve and found that my model leaned towards True Positive. Additionally, I had a 98% accuracy with this model, meaning that this model is almost close to accurate in predicting one's possibliity of breast cancer.
+
+```{r, echo= false}
+library(pROC)
+
+summary(logistic_model)
+
+predict_reg <- predict(logistic_model,
+                       test_reg, type = "response")
+predict_reg
+
+# Compute ROC curve
+roc_curve <- roc(test_data$diagnosis, predictions)
+plot(roc_curve)
+
+# Print AUC
+print(paste("AUC:", auc(roc_curve)))
+# Plot ROC curve with additional customization
+plot(roc_curve, 
+     main = "ROC Curve for Diagnosis Prediction", 
+     col = "black", 
+     lwd = 2, 
+     xlab = "False Positive Rate",  # X-axis label
+     ylab = "True Positive Rate")    # Y-axis label
+```
+
+## Discussion
+
+Through my data and findings, I was able to come up with the following conclusion: Cancerous Cells are Large in Size, and High in Concavity and Compactness. The reason as to why these findings are important because it can help give doctors insights as to how a cancerous tumor should look, and it can be diagnosed much earlier as well. In the bigger picture, this also means that breast cancer can be detected very early, and may also help people receive treatment earlier when the tumor is not larger or at a higher stage. I was surprised to see how little variability there was within my bar plots. I think it was something very positive due to the fact that little variability ensures that there is no chance of a big tumor being non-cancerous, or a small tumor being cancerous. I think in a sense it could be good news. I think the next steps would be to improve the prediction models, as that would benefit the population much more.
+
+## Code and Data Availability
+
+Data Set: https://ftp.cs.wisc.edu/math-prog/cpo-dataset/machine-learn/cancer/
+
+GitHub Repository:
+
+[Works Cited]{.underline}
+
+“Breast Cancer Statistics: How Common Is Breast Cancer?” *Breast Cancer Statistics \| How Common Is Breast Cancer? \| American Cancer Society*, www.cancer.org/cancer/types/breast-cancer/about/how-common-is-breast-cancer.html. Accessed 13 Aug. 2024. 
+
+“Key Statistics for Breast Cancer in Men.” *American Cancer Society*, www.cancer.org/cancer/types/breast-cancer-in-men/about/key-statistics.html. Accessed 13 Aug. 2024. 
