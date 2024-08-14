@@ -7,15 +7,17 @@ editor: visual
 
 ## Abstract
 
-In this study, we investigated various classification models applied to the Wisconsin Breast Cancer Classification dataset found on Kaggle to evaluate each model's performance in predicting a diagnosis outcome on whether the tumor is benign or malignant. Utilizing a collection of ten algorithms including, we assessed accuracy and precision metrics. The dataset underwent rigorous preprocessing, including feature selection to remove highly correlated variables and normalization to ensure consistent data scaling. We conducted extensive model evaluations, repeated across 200 iterations to ensure robustness and reliability of the results. This comprehensive analysis aims to identify the most effective model for breast cancer diagnosis prediction and to understand the relative performance of various classification techniques. We found that when using Neural Classification Chains, we would achieve the best median accuracy and the second best median precision and found that the most important features for the top performing models were radius_worst, concave.points_worst, concavity_worst, radius_se, and compactness_mean.
+In this report, we investigated various classification models applied to the Wisconsin Breast Cancer Classification dataset found on Kaggle to evaluate each model's performance in predicting a diagnosis outcome on whether the tumor is benign or malignant. Utilizing a collection of ten algorithms including, we assessed accuracy and precision metrics. The dataset underwent rigorous preprocessing, including feature selection to remove highly correlated variables and normalization to ensure consistent data scaling. We conducted extensive model evaluations, repeated across 200 iterations to ensure robustness and reliability of the results. This comprehensive analysis aims to identify the most effective model for breast cancer diagnosis prediction and to understand the relative performance of various classification techniques. We found that when using Neural Classification Chains, we would achieve the best median accuracy and the second best median precision and found that the most important features for the top performing models were radius_worst, concave.points_worst, concavity_worst, radius_se, and compactness_mean.
 
 ## Introduction
 
-After seeing breast cancer's wrath on a member of my close family, I felt compelled to channel my efforts into working on a dataset dedicated to improving breast cancer classification. This disease is still one of the most critical health challenges globally with 2.3 million people being diagnosed and 670,000 deaths each year. Thus, we need to be able to develop reliable methods for early detection and diagnosis before it's too late for the many patients that need it. Machine learning techniques offer promising solutions for enhancing diagnostic accuracy by using patterns in medical data. This study aims to explore the efficacy of multiple classification algorithms in predicting breast cancer diagnoses based on a dataset collected by the University of Wisconsin.
+After seeing breast cancer's devastating impact on a close family member, we felt compelled to channel my efforts into working on a dataset dedicated to improving breast cancer classification. This disease is still one of the most critical health challenges globally, with 2.3 million people being diagnosed and 670,000 deaths each year as it accounts for 31% of all cancer diagnosed in women. We need to develop reliable methods for early detection and diagnosis before it's too late for the many patients who need it. Machine learning techniques offer promising solutions for enhancing diagnostic accuracy by analyzing patterns in medical data. This study aims to explore the efficacy of multiple classification algorithms in predicting breast cancer diagnoses using the Wisconsin Diagnostic Breast Cancer Dataset.
 
-The dataset includes a total of 30 features relevant to breast cancer diagnosis, such as mean radius, texture, and area of the tumors among many others. In terms of preprocessing, we incorporated the removal of highly correlated variables to avoid redundancy and normalization to ensure comparability across features. A set of 10 classification models is employed as well: Random Forest, K-Nearest Neighbors, Support Vector Machines, Decision Trees, Naive Bayes, Logistic Regression, Boosting, Gradient Boosting Machines, Multi-Layer Perceptrons, and Neural Classification Chains.
+The dataset includes a total of 30 features relevant to breast cancer diagnosis, such as mean radius, texture, and area of the tumors among many others fore ach patient. In terms of preprocessing, we incorporated the removal of highly correlated variables to avoid redundancy and normalization to ensure comparability across features. We evaluated a set of 10 classification models: Random Forest, K-Nearest Neighbors, Support Vector Machines, Decision Trees, Naive Bayes, Logistic Regression, Boosting, Gradient Boosting Machines, Multi-Layer Perceptrons, and Neural Classification Chains. Each evaluation has 70% of the data as training and 30% as testing.
 
-Each model's performance is evaluated based on accuracy and precision metrics to determine their effectiveness in classifying breast cancer diagnoses. The models are tested across 200 iterations to validate the stability of their performance and to mitigate the impact of random variability. By systematically comparing these models, this study seeks to identify the most robust approach for breast cancer classification and provide insights into the strengths and limitations of the techniques.
+Each model's performance is evaluated based on accuracy and precision metrics to determine their effectiveness in classifying breast cancer diagnoses. The models are tested across 200 iterations to validate the stability of their performance and to mitigate the impact of random variability. By systematically comparing these models, this report seeks to identify the most robust approach for breast cancer classification and provide insights into the strengths and limitations of the techniques.
+
+Let's first import all of the necessary libraries.
 
 ```{r}
 #! message: FALSE
@@ -69,23 +71,25 @@ data <- read.csv("../data/breast_cancer_classification_data.csv")
 
 ## Feature Selection
 
+First, it is necessary to clean up the data. Thus, we removed the first and last columns as they were not necessary. The first column included patient id while the last column was empty.
+
 ```{r}
 data <- data[,c(-1,-33)]
 ```
+
+Now, we need to check for variables with no variance.
 
 ```{r}
 nearZeroVar(data)
 ```
 
-The nearZeroVar shows us that we don't have to remove any variables with little to no variation.
-
-We normalize the data for better classification
+The nearZeroVar shows us that we don't have to remove any variables with little to no variation. Our next step in cleaning up the data is to normalize the values to ensure comparability across features.
 
 ```{r}
 data <- cbind(data[1],as.data.frame(scale(data[,-1])))
 ```
 
-To make sure there not any highly correlated variables, we can calculate the correlation between every numerical variable and then plot those that are above 0.9.
+Next, when working with machine learning models, highly correlated values can have unforeseen effects. To ensure there were no highly correlated variables, We calculated the correlation between every numerical variable and plotted those that were above 0.9, as seen in the following correlation matrix.
 
 ```{r}
 numerical_data <- data[,2:31]
@@ -93,21 +97,21 @@ correlation <- cor(numerical_data,use = "complete.obs")
 ggcorrplot(correlation > 0.9)
 ```
 
-We also use the findCorrelation function to find the variables we need to remove
+We also use the findCorrelation function to find the variables we need to remove in order to get rid of the the high correlations we foudn earlier.
 
 ```{r}
 highlyCorrelated <- findCorrelation(cor(numerical_data), cutoff=0.9,names=TRUE)
 highlyCorrelated
 ```
 
-By iterating through this list of highly correlated variables and using some logic, we can come up with the following: It's not the exact same but removes enough to leave none highly correlated. We can see this when we run the findCorrelation function again.
+By iterating through this list of highly correlated variables and using some logic, we can come up with the following selection of variables. It's not the exact same but removes enough to leave no highly correlated pairs. We can see this when we run the findCorrelation function again.
 
 ```{r}
 highlyCorrelated <- findCorrelation(cor(select(numerical_data,-c("concavity_mean","concave.points_mean","perimeter_worst","radius_mean","perimeter_mean","perimeter_se","area_worst","area_mean","area_se","texture_mean"))), cutoff=0.9,names=TRUE)
 highlyCorrelated
 ```
 
-Let's modify the original data with these column removals and then test to see if any pairs of the numerical variables contain a correlation of greater than 0.9.
+Let's modify the original data with these column removals and then test to see if any pairs of the numerical variables contain a correlation of greater than 0.9 by plotting another correlation matrix.
 
 ```{r}
 originalData <- data
@@ -119,7 +123,7 @@ correlation <- cor(data[,-1],use = "complete.obs")
 ggcorrplot(correlation > 0.9) 
 ```
 
-As seen in the graph, there are none.
+As seen in the graph, there are no pairs of highly correlated variables.
 
 ## Model Comparison
 
@@ -337,7 +341,7 @@ accuracies
   
 ```
 
-Now, notice that we used the subset and not all the variables. We need to make sure that this is a reasonable subset and that the results won't be too different from using all the variables, so we should compare the results from just running the ml model with just the subset with the results from running the ml models with all of the data.
+Now, notice that we used the subset and not all the variables. To ensure that this is a reasonable subset and that the results won't differ significantly from using all the variables, we need to compare the results of running the models with just the subset to using the entire dataset. We can do this by iterating with each machine learning model 200 times for both the subset and original dataset through the following code.
 
 ```{r}
 big_accuracy_dataframe_standard <- tibble()
@@ -672,7 +676,7 @@ ggplot(big_accuracy_dataframe_standard, aes(x = Metric, y = Accuracy)) +
   theme_minimal()
 ```
 
-Now, we know that we can use the subset of data that we got after removing all the highly correlated variables as the accuracy stays roughly the same. We cannot do a t-test on this data because each seed uses the same data so the t-test is not applicable. Now, let's get some statistics about the machine learning results after only using the subset. When we compared using all the variables and just using the subset, we only considered accuracy. Now, we should also consider precision and false negatives.
+Now, we know that we can use the subset of data that we got after removing all the highly correlated variables as the accuracy stays roughly the same with a \~1% difference. We cannot do a t-test on this data because each seed uses the same data so the t-test is not applicable. Now, let's get some statistics about the machine learning results after only using the subset. In the last comparison, we only considered accuracy. However, we can't jump straight into comparing models based on these results. We also need to obtain statistics such as precision (the proportion of correct positive predictions out of all cases classified as positive) and the false negative rate (where a tumor is classified as benign but is actually malignant) in order to compare the models. The false negative rate is particularly important because it would mean missing a cancerous tumor, and the patient not getting the treatment they need.
 
 ```{r}
 accuracy_precision_dataframe <- tibble()
@@ -904,7 +908,7 @@ Let's find the most precise model after doing this
 ggplot(accuracy_precision_dataframe,aes(x = reorder(Model, Precision, FUN = median),y=Precision,group=Model))+geom_boxplot() + labs(x="Model")
 ```
 
-We should also check the false negative rate because it is much, much more detrimental than a false positive. Therefore, we want the lowest false negative rate.
+We want the lowest false negative rate as it is very detrimental to the treatment of a patient. Thus, we can find the least false negative rate as well.
 
 ```{r}
 ggplot(accuracy_precision_dataframe,aes(x = reorder(Model, False_Negative, FUN = median),y=False_Negative,group=Model))+geom_boxplot() + labs(x="Model")
@@ -912,7 +916,7 @@ ggplot(accuracy_precision_dataframe,aes(x = reorder(Model, False_Negative, FUN =
 
 ------------------------------------------------------------------------
 
-We see that ncc is one of the better models as it is at or very close to the best in terms of both accuracy, precision. It also has the lowest false negative rate, which is very good. We can now look at this best model with cross validation, which we didn't explicitly include earlier.
+We noticed that the NCC (Neural Classification Chain) performs well in all three measurements. It is at or very close to the best in terms of both accuracy and precision. It also has one of the lowest false negative rate, which is very good. We can now look at this best model with cross validation, which we didn't explicitly include earlier.
 
 ```{r}
 train_control <- trainControl(
@@ -922,7 +926,7 @@ train_control <- trainControl(
 )
 ```
 
-Let's also generate an ROC curve and it's corresponding AUC.
+Let's also generate an ROC curve—a graphical representation of a classifier's performance—showing the trade-off between the true positive rate (sensitivity) and the false positive rate (1-specificity) across different threshold values—and it's corresponding AUC.
 
 ```{r}
 set.seed(42)
@@ -988,7 +992,7 @@ cat("AUC: ", round(auc_value, 4), "\n")
 
 Our curve had an AUC (Area Under the Curve) of 0.995, indicating that the classifier is very close to perfect in distinguishing between the positive and negative classes (an AUC of 1 would indicate perfection). This suggests the model is extremely effective at correctly classifying instances, with a very high probability of ranking a randomly chosen positive instance higher than a randomly chosen negative one.
 
-Now let's compare the cross-validated model to the original by repeating this 200 times.
+We can also apply cross-validation and run it 200 times, comparing it to the original.
 
 ```{r}
 crossValidated_accuracy <- tibble()
@@ -1129,7 +1133,7 @@ Feature importance in neural networks, including those trained using the `nnet` 
 
 Neural networks, such as the nnet model and particularly Multi-Layer Perceptrons (MLPs), consist of complex interactions between features that are transformed through multiple layers. This non-linearity and the distributed nature of the learned weights make it challenging to interpret the effect of each feature directly. These methods generally involve perturbing the data and observing changes in model performance, rather than deriving feature importance directly from the model's parameters. Techniques such as permutation importance, sensitivity analysis, or using model-specific interpretability tools (like SHAP or LIME) are often employed to approximate feature importance, but we were unable to generate these in a timely manner especially since we were a week behind because of issues with another dataset. Thus, these could be part of our next steps in this project.
 
-Other than the NCC model, we saw that the random forest model was pretty high in terms of both precision and accuracy. Thus, we can explore this instead of see what features were important in this model as the only top performers would take much more difficult measures to analyze. We also saw that the svm model had great performances as well. Thus, we should also analyze the feature importance from this model. We can do this by using rfe and with cross-validation.
+Beyond the NCC model, we saw that the random forest model was pretty high in terms of both precision and accuracy. Thus, we can explore this instead of see what features were important in this model as the only top performers would take much more difficult measures to analyze. The SVM model had great performances as well. Thus, we should also analyze the feature importance from this model. We can do this by using rfe and with cross-validation.
 
 ```{r}
 set.seed(42)
@@ -1156,10 +1160,10 @@ print(predictors(rfe_model))
 
 We see from the results that concave.points_worst, radius_worst, concavity_worst, compactness_mean, and radius_se were the five most important features in the random forest mode. In this case, the table and graph show that all give of these contained a MeanDecreaseGini greater than ten.
 
-The other model, the svm model, returned, from the rfe method, the most important features radius_worst, concave.points_worst, concavity_worst, radius_se, and compactness_mean. This is the exact same as the rf results, albeit in a different order. Therefore, we can be fairly confident that these are the variables that are valued most by these models.
+The other model, the SVM model, returned, from the rfe method, the most important features radius_worst, concave.points_worst, concavity_worst, radius_se, and compactness_mean. This is the exact same as the RF results, albeit in a different order. Therefore, we can be fairly confident that these are the variables that are valued most by these models.
 
-It should also be noted that all of the models had accuracies of over 90%, which is very good for the machine learning environment as of right now, with many of the models surpassing 97%. This shows that these models all very good at predicting a tumor's nature based on the attributes we gave it.
+It's also noteworthy that all the models had accuracies over 90%, which is very good in the current machine learning landscape, with many models surpassing 97%. This indicates that these models are very effective at predicting a tumor's nature based on the attributes we provided.
 
 ## Conclusion
 
-In conclusion, the best way to predict a tumor's nature is to use a neural classification chain trained on all of the variables that aren't heavily correlated, but the most important variables from some of the top models are radius_worst, concave.points_worst, concavity_worst, radius_se, and compactness_mean. Therefore, if we were only able to use a few metrics, these would be the ones to use.
+In conclusion, the best way to predict a tumor's nature is to use a Neural Classification Chain trained on all the variables that aren't heavily correlated. However, if we were only able to use a few metrics, radius_worst, concave.points_worst, concavity_worst, radius_se, and compactness_mean would be the ones to focus on.
