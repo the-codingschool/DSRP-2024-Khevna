@@ -1170,3 +1170,7 @@ It's also noteworthy that all the models had accuracies over 90%, which is very 
 ## Conclusion
 
 In conclusion, the best way to predict a tumor's nature is to use a Neural Classification Chain trained on all the variables that aren't heavily correlated. However, if we were only able to use a few metrics, radius_worst, concave.points_worst, concavity_worst, radius_se, and compactness_mean would be the ones to focus on.
+
+Github: the-codingschool/DSRP-2024-Khevna (github.com)
+
+Dataset: Breast Cancer Wisconsin (Diagnostic) Data Set (kaggle.com)
